@@ -1,6 +1,5 @@
 name: OpenBank Feature CI/CD
 
-# Trigger on git push to any branch except main
 on:
   push:
     branches-ignore:
@@ -22,13 +21,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          # ONLY use cache if you have a package-lock.json in the backend folder
           cache: 'npm'
-          cache-dependency-path: './backend/package-lock.json'
+          cache-dependency-path: 'backend/package-lock.json'
       
       - name: Install & Test Backend
         run: |
           cd backend
           npm install
+          # Ensure your backend has a test script in package.json
           npm test
 
   docker-build:
@@ -39,7 +40,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Build Docker images for Frontend & Backend 
+      # Build Docker images for Frontend & Backend [cite: 72, 81]
       - name: Build Frontend Image
         run: docker build -t openbank-frontend:feature-${{ github.sha }} ./frontend
 
@@ -61,7 +62,7 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-      - name: Deploy to Cluster
+      - [cite_start]name: Deploy to Cluster [cite: 76, 84]
         run: |
           kubectl apply -f k8s/mongodb-deployment.yaml
           kubectl apply -f k8s/backend-deployment.yaml
