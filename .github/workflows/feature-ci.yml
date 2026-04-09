@@ -1,0 +1,68 @@
+name: OpenBank Feature CI/CD
+
+# Trigger on git push to any branch except main
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Backend Testing (Node.js/Express) [cite: 57, 63]
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+      
+      - name: Install & Test Backend
+        run: |
+          cd backend
+          npm install
+          npm test
+
+  docker-build:
+    name: Dockerize Feature
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Build Docker images for Frontend & Backend 
+      - name: Build Frontend Image
+        run: docker build -t openbank-frontend:feature-${{ github.sha }} ./frontend
+
+      - name: Build Backend Image
+        run: docker build -t openbank-backend:feature-${{ github.sha }} ./backend
+
+  deploy:
+    name: Deploy to Sandbox
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Deployment manifests (Kubernetes YAML files) [cite: 83]
+      - name: Set up kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy to Cluster
+        run: |
+          kubectl apply -f k8s/mongodb-deployment.yaml
+          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f k8s/frontend-deployment.yaml
