@@ -16,12 +16,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Backend Testing (Node.js/Express) [cite: 57, 63]
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          # ONLY use cache if you have a package-lock.json in the backend folder
           cache: 'npm'
           cache-dependency-path: 'backend/package-lock.json'
       
@@ -29,7 +27,6 @@ jobs:
         run: |
           cd backend
           npm install
-          # Ensure your backend has a test script in package.json
           npm test
 
   docker-build:
@@ -40,7 +37,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Build Docker images for Frontend & Backend [cite: 72, 81]
       - name: Build Frontend Image
         run: docker build -t openbank-frontend:feature-${{ github.sha }} ./frontend
 
@@ -55,14 +51,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Deployment manifests (Kubernetes YAML files) [cite: 83]
       - name: Set up kubectl
         uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-      - [cite_start]name: Deploy to Cluster [cite: 76, 84]
+      - name: Deploy to Cluster
         run: |
           kubectl apply -f k8s/mongodb-deployment.yaml
           kubectl apply -f k8s/backend-deployment.yaml
