@@ -19,15 +19,15 @@ jobs:
           # Logic: If code doesn't exist yet, we just log a message
           ls -R || echo "No files found yet - skipping scan"
 
-      - name: Build Production Images (Placeholder)
-        run: |
-          echo "This step will run 'docker build' once Dockerfiles are created."
-          echo "Tagging as: openbank-prod-v${{ github.run_number }}"
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
 
-      - name: Deploy to Cloud-Native Cluster (Placeholder)
+      - name: Deploy to Kubernetes
         run: |
-          echo "This step will use 'kubectl apply' once k8s/ is populated."
-          echo "Deploying to IBM-aligned simulated environment..."
-          
-      - name: Post-Deployment Health Check
-        run: echo "Verifying service availability..."
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/secrets.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/mongodb/
+          kubectl apply -f k8s/backend/
+          kubectl apply -f k8s/frontend/
+          kubectl apply -f k8s/ingress.yaml

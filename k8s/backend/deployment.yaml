@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: bluemarble
+spec:
+  replicas: 2 # Runs two copies for high availability
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: yourdockerhubusername/bluemarble-backend:latest # REPLACE ME
+        ports:
+        - containerPort: 5000
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: bluemarble-config
+              key: backend-port
+        - name: MONGODB_URI
+          # This connects to the service we made in Step 3
+          value: "mongodb://admin:$(MONGODB_PASSWORD)@mongodb-service:27017/bluemarble?authSource=admin"
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: bluemarble-secrets
+              key: mongodb-root-password
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: bluemarble-secrets
+              key: jwt-secret
+        livenessProbe:
+          httpGet:
+            path: /health # Make sure you have a GET /health route in your Express code!
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
