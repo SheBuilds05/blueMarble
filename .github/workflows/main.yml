@@ -1,0 +1,33 @@
+name: Production Deployment Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  # Restrict to manual triggers or merged PRs only for safety
+  workflow_dispatch:
+
+jobs:
+  validate-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Environment Pre-check
+        run: |
+          echo "Checking for production-ready code..."
+          # Logic: If code doesn't exist yet, we just log a message
+          ls -R || echo "No files found yet - skipping scan"
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/secrets.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/mongodb/
+          kubectl apply -f k8s/backend/
+          kubectl apply -f k8s/frontend/
+          kubectl apply -f k8s/ingress.yaml

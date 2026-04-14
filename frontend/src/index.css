@@ -1,3 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+:root {
+  --primary-blue: #052ec0;
+  --glass-bg: #ADE8F4;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  /* Clean, professional light-to-blue transition */
+  background: linear-gradient(135deg, #ADE8F4 0%, #052ec0 100%);
+  background-attachment: fixed;
+  color: #000919; /* Dark text for high legibility */
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom transitions for a premium feel */
+* {
+  transition: all 0.2s ease-in-out;
+}
