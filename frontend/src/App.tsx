@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Deposit from './pages/Deposit';
 import Buy from './pages/Buy';
 import Notifications from './pages/Notifications';
+import Withdraw from './pages/Withdraw';
 import Navbar from './components/Navbar';
 
 // Login component
@@ -108,6 +109,7 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/deposit" element={<PrivateRoute><Deposit /></PrivateRoute>} />
+        <Route path="/withdraw" element={<PrivateRoute><Withdraw /></PrivateRoute>} />
         <Route path="/buy" element={<PrivateRoute><Buy /></PrivateRoute>} />
         <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
         <Route path="/" element={<Navigate to="/deposit" />} />

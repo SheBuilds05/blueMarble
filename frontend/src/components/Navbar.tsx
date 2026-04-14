@@ -14,16 +14,17 @@ const Navbar = () => {
   if (!user) return null;
 
   return (
-    <nav className="navbar">
-      <div className="navbar-brand">
-        <Link to="/deposit">💎 BlueMarble</Link>
-      </div>
-      <div className="navbar-links">
-        <Link to="/deposit">💰 Deposit</Link>
-        <Link to="/buy">🛒 Buy</Link>
-        <Link to="/notifications">🔔 Notifications</Link>
-        <span className="user-name">👤 {user.name}</span>
-        <button onClick={handleLogout} className="logout-btn">
+    <nav className="bg-[#0a1628] border-b border-white/10 px-6 py-4 flex justify-between items-center flex-wrap gap-4">
+      <Link to="/deposit" className="text-xl font-bold text-white tracking-wide">
+        💎 BlueMarble
+      </Link>
+      <div className="flex gap-6 items-center flex-wrap">
+        <Link to="/deposit" className="text-white/70 hover:text-white transition text-sm">Deposit</Link>
+        <Link to="/withdraw" className="text-white/70 hover:text-white transition text-sm">Withdraw</Link>
+        <Link to="/buy" className="text-white/70 hover:text-white transition text-sm">Buy</Link>
+        <Link to="/notifications" className="text-white/70 hover:text-white transition text-sm">Notifications</Link>
+        <span className="text-white/50 text-sm">👤 {user.name}</span>
+        <button onClick={handleLogout} className="text-red-400 hover:text-red-300 transition text-sm">
           Logout
         </button>
       </div>
