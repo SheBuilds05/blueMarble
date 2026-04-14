@@ -1,3 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-blue-marble-primary: #052ce0;
+  --color-blue-marble-dark: #000919;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
