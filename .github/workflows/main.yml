@@ -3,7 +3,6 @@ name: Production Deployment Pipeline
 on:
   push:
     branches: [ "main" ]
-  # Restrict to manual triggers or merged PRs only for safety
   workflow_dispatch:
 
 jobs:
@@ -13,17 +12,32 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Environment Pre-check
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Image
         run: |
-          echo "Checking for production-ready code..."
-          # Logic: If code doesn't exist yet, we just log a message
-          ls -R || echo "No files found yet - skipping scan"
+          # This builds the image to ensure the Dockerfile is valid
+          docker build -t openbank-backend:latest ./backend
+
+      - name: Build Frontend Image
+        run: |
+          docker build -t openbank-frontend:latest ./frontend
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
 
       - name: Deploy to Kubernetes
         run: |
+          # Checks if the Kubeconfig secret is available before attempting deploy
+          if [ -z "${{ secrets.KUBECONFIG }}" ]; then
+            echo "Kubeconfig not found. Skipping deployment until Week 3 setup."
+            exit 0
+          fi
+          
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+          
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/secrets.yaml
           kubectl apply -f k8s/configmap.yaml
