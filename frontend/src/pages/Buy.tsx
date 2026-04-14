@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 
 interface ServiceProvider {
   id: string;
@@ -7,8 +6,14 @@ interface ServiceProvider {
   type: 'airtime' | 'electricity' | 'voucher';
 }
 
+interface Notification {
+  title: string;
+  message: string;
+  type: 'transaction';
+}
+
 const Buy = () => {
-  const { user, updateBalance, addNotification } = useAuth();
+  const [balance, setBalance] = useState(15000.00); // Default balance in ZAR
   const [selectedCategory, setSelectedCategory] = useState<'airtime' | 'electricity' | 'voucher'>('airtime');
   const [selectedProvider, setSelectedProvider] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -46,6 +51,17 @@ const Buy = () => {
       currency: 'ZAR',
       minimumFractionDigits: 2
     }).format(amount);
+  };
+
+  const addNotification = (notification: Notification) => {
+    // Simple console notification instead of auth context
+    console.log('Notification:', notification);
+    // You can replace this with your own notification system (e.g., toast, alert, etc.)
+    alert(`${notification.title}: ${notification.message}`);
+  };
+
+  const updateBalance = (newBalance: number) => {
+    setBalance(newBalance);
   };
 
   const handlePurchase = () => {
@@ -90,7 +106,7 @@ const Buy = () => {
       return;
     }
     
-    if (numAmount > (user?.balance || 0)) {
+    if (numAmount > balance) {
       setMessage({ text: 'Insufficient funds', type: 'error' });
       return;
     }
@@ -103,7 +119,7 @@ const Buy = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      const newBalance = (user?.balance || 0) - numAmount;
+      const newBalance = balance - numAmount;
       updateBalance(newBalance);
       
       let purchaseDetails = '';
@@ -167,7 +183,7 @@ const Buy = () => {
       <div className="max-w-md mx-auto mb-10">
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6 text-center border border-white/40">
           <span className="text-[#4a5a7a] text-xs uppercase tracking-wider">Available Balance</span>
-          <span className="text-[#1a2a4a] text-3xl md:text-4xl font-semibold block mt-2">{formatCurrency(user?.balance || 0)}</span>
+          <span className="text-[#1a2a4a] text-3xl md:text-4xl font-semibold block mt-2">{formatCurrency(balance)}</span>
         </div>
       </div>
 

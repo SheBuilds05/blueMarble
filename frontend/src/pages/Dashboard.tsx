@@ -8,6 +8,7 @@ import {
 
 // Path matches your assets folder
 import logo from "../assets/Logo.png";
+import BottomNav from '../components/BottomNav';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -22,8 +23,8 @@ const Dashboard: React.FC = () => {
     { label: 'Pay Bills', icon: <Banknote size={24} />, path: '/pay' },
     { label: 'Deposit', icon: <ArrowDownCircle size={24} />, path: '/deposit' },
     { label: 'Withdraw', icon: <ArrowUpCircle size={24} />, path: '/withdraw' },
-    { label: 'Buy', icon: <ShoppingBag size={24} />, path: '#' }, 
-    { label: 'Message', icon: <MessageCircle size={24} />, path: '/messages' },
+    { label: 'Buy', icon: <ShoppingBag size={24} />, path: '/buy' }, 
+    { label: 'Message', icon: <MessageCircle size={24} />, path: '/notification' },
     { label: 'Contact Us', icon: <PhoneCall size={24} />, path: '/contact' },
   ];
 
@@ -117,11 +118,11 @@ const Dashboard: React.FC = () => {
           <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
             <div className="min-w-[280px] flex-1 bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-[2rem]">
               <p className="text-white/60 text-[10px] font-bold uppercase mb-1">Savings Account</p>
-              <p className="text-white font-bold text-2xl">$82,400.00</p>
+              <p className="text-white font-bold text-2xl">R82,400.00</p>
             </div>
             <div className="min-w-[280px] flex-1 bg-[#052ce0]/40 backdrop-blur-md border border-white/20 p-8 rounded-[2rem]">
               <p className="text-white/60 text-[10px] font-bold uppercase mb-1">Business Account</p>
-              <p className="text-white font-bold text-2xl">$42,192.00</p>
+              <p className="text-white font-bold text-2xl">R42,192.00</p>
             </div>
           </div>
         </section>
@@ -170,31 +171,7 @@ const Dashboard: React.FC = () => {
         </section>
       </main>
 
-      {/* Floating Bottom Navigation */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-md bg-white/95 backdrop-blur-2xl py-4 px-6 rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] flex items-center justify-between z-50 border border-white/50">
-        <button className="flex flex-col items-center gap-1 text-[#052ce0]">
-          <HomeIcon size={22} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Home</span>
-          <div className="w-1.5 h-1.5 bg-[#052ce0] rounded-full shadow-[0_0_8px_#052ce0]" />
-        </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-[#052ce0] transition-colors">
-          <User size={22} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Account</span>
-        </button>
-        <div className="relative -top-12">
-          <button className="bg-[#052ce0] p-5 rounded-full text-white shadow-[0_10px_20px_rgba(5,46,224,0.4)] hover:scale-110 active:scale-95 transition-all border-4 border-white">
-            <Plus size={32} strokeWidth={3} />
-          </button>
-        </div>
-        <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-[#052ce0] transition-colors">
-          <History size={22} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">History</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-[#052ce0] transition-colors">
-          <Wallet size={22} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Cards</span>
-        </button>
-      </nav>
+      <BottomNav/>
     </div>
   );
 };

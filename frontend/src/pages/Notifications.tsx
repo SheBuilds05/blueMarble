@@ -1,9 +1,72 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'transaction' | 'alert' | 'success';
+  read: boolean;
+  createdAt: string;
+}
 
 const Notifications = () => {
-  const { notifications, markAsRead, deleteNotification, markAllAsRead } = useAuth();
+  // Sample notifications data
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      title: 'Transfer Successful',
+      message: 'R500.00 transferred from Main Savings to Everyday Cheque',
+      type: 'transaction',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+    },
+    {
+      id: '2',
+      title: 'Welcome to FinTech App',
+      message: 'Thank you for joining us! Start managing your finances today.',
+      type: 'success',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    },
+    {
+      id: '3',
+      title: 'Security Alert',
+      message: 'New login detected from Chrome on Windows',
+      type: 'alert',
+      read: true,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    },
+    {
+      id: '4',
+      title: 'Bill Payment Reminder',
+      message: 'Your electricity bill is due in 3 days',
+      type: 'alert',
+      read: true,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
+    },
+  ]);
+
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+
+  const markAsRead = (id: string) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
+  };
+
+  const deleteNotification = (id: string) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.filter(notif => notif.id !== id)
+    );
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif => ({ ...notif, read: true }))
+    );
+  };
 
   const filteredNotifications = notifications.filter(notif => {
     if (filter === 'unread') return !notif.read;

@@ -1,9 +1,37 @@
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Wallet, History, CreditCard, User, Plus } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { 
+  Wallet, History, CreditCard, User, Plus, 
+  ArrowDownCircle, ArrowUpCircle, Banknote, ShoppingBag, X 
+} from 'lucide-react';
 
 const BottomNav = () => {
-  const location = useLocation();
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const quickActions = [
+    { label: 'Deposit', icon: <ArrowDownCircle size={20} />, path: '/deposit', color: 'bg-emerald-500' },
+    { label: 'Withdraw', icon: <ArrowUpCircle size={20} />, path: '/withdraw', color: 'bg-blue-600' },
+    { label: 'Pay Bills', icon: <Banknote size={20} />, path: '/pay-bills', color: 'bg-indigo-600' },
+    { label: 'Buy', icon: <ShoppingBag size={20} />, path: '/buy', color: 'bg-violet-600' },
+  ];
+
+  const handleAction = (path: string) => {
+    setShowMenu(false);
+    navigate(path);
+  };
 
   const navItems = [
     { path: '/dashboard', icon: <Wallet size={22} />, label: 'HOME' },
@@ -13,38 +41,66 @@ const BottomNav = () => {
   ];
 
   return (
-    /* Increased z-index to 9999 to ensure it sits above all dashboard elements */
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[9999] pointer-events-auto">
-      <nav className="bg-white/95 backdrop-blur-2xl border border-white/40 h-20 rounded-[2.5rem] flex justify-between items-center px-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative">
+    <div className="fixed bottom-0 left-0 right-0 flex flex-col items-center justify-end pb-8 z-[99999] pointer-events-none">
+      
+      {/* Quick Actions Menu */}
+      {showMenu && (
+        <div 
+          ref={menuRef}
+          className="mb-6 w-[92%] max-w-md bg-white/90 backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.4)] border border-white/40 pointer-events-auto animate-in fade-in slide-in-from-bottom-10 duration-300"
+        >
+          <div className="flex justify-between items-center mb-6 px-2">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#052ce0]">Quick Actions</h3>
+            <button onClick={() => setShowMenu(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+              <X size={18} />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                onClick={() => handleAction(action.path)}
+                className="flex items-center gap-4 p-4 rounded-3xl bg-white/50 border border-white/80 hover:bg-[#052ce0] hover:text-white transition-all group shadow-sm active:scale-95"
+              >
+                <div className={`p-2 rounded-2xl ${action.color} text-white group-hover:bg-white group-hover:text-[#052ce0] transition-colors`}>
+                  {action.icon}
+                </div>
+                <span className="text-sm font-bold tracking-tight">{action.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Bar */}
+      <nav className="bg-white/95 backdrop-blur-2xl border border-white/40 h-20 w-[92%] max-w-md rounded-[2.5rem] flex justify-between items-center px-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)] relative pointer-events-auto">
         
-        {/* Left Nav Group */}
-        <div className="flex flex-1 justify-around items-center">
+        <div className="flex flex-1 justify-around items-center h-full">
           <CustomNavLink item={navItems[0]} />
           <CustomNavLink item={navItems[1]} />
         </div>
 
-        {/* Center Floating Action - blueMarble Primary Blue */}
+        {/* Center Toggle Button */}
         <div className="relative -top-8 mx-2">
-          <NavLink to="/deposit" className="block">
-            <button 
-              className="w-16 h-16 bg-[#052ec0] rounded-full flex items-center justify-center shadow-[0_10px_20px_rgba(5,46,192,0.4)] border-4 border-white hover:scale-110 transition-transform active:scale-95 cursor-pointer"
-              onClick={() => console.log("Navigating to Deposit")}
-            >
-              <Plus size={32} color="white" strokeWidth={3} />
-            </button>
-          </NavLink>
+          <button 
+            onClick={() => setShowMenu(!showMenu)}
+            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_20px_rgba(5,46,192,0.5)] border-4 border-white transition-all duration-500 transform ${showMenu ? 'bg-slate-800 rotate-45' : 'bg-[#052ce0]'}`}
+          >
+            <Plus size={32} color="white" strokeWidth={3} />
+          </button>
         </div>
 
-        {/* Right Nav Group */}
-        <div className="flex flex-1 justify-around items-center">
+        <div className="flex flex-1 justify-around items-center h-full">
           <CustomNavLink item={navItems[2]} />
           <CustomNavLink item={navItems[3]} />
         </div>
-        
       </nav>
-      {/* Slogan Label under Nav as seen in your reference images */}
-      <div className="text-center mt-2">
-        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em]">blueMarble</span>
+
+      {/* Slogan Label */}
+      <div className="mt-3 pointer-events-none">
+        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] drop-shadow-sm">
+          blueMarble
+        </span>
       </div>
     </div>
   );
@@ -53,24 +109,21 @@ const BottomNav = () => {
 const CustomNavLink = ({ item }: { item: any }) => (
   <NavLink 
     to={item.path}
-    // Added pointer-events-auto and cursor-pointer to ensure clickability
     className={({ isActive }) => `
-      relative flex flex-col items-center justify-center gap-1 w-16 h-16 rounded-2xl transition-all duration-300 cursor-pointer pointer-events-auto
-      ${isActive ? 'bg-[#ADE8F4]/30 shadow-inner' : 'hover:bg-gray-50/50'}
+      relative flex flex-col items-center justify-center gap-1 w-16 h-full rounded-2xl transition-all duration-300
+      ${isActive ? 'bg-[#ADE8F4]/30' : 'active:bg-gray-100'}
     `}
   >
     {({ isActive }) => (
       <>
-        <div className={`${isActive ? 'text-[#052ec0] scale-110' : 'text-gray-400'} transition-all duration-300 drop-shadow-sm`}>
+        <div className={`${isActive ? 'text-[#052ce0] scale-110' : 'text-slate-400'} transition-all`}>
           {item.icon}
         </div>
-        <span className={`text-[9px] font-black tracking-tighter uppercase transition-colors duration-300 ${isActive ? 'text-[#052ec0]' : 'text-gray-500'}`}>
+        <span className={`text-[9px] font-black tracking-tighter uppercase ${isActive ? 'text-[#052ce0]' : 'text-slate-500'}`}>
           {item.label}
         </span>
-        
-        {/* blueMarble Dot Indicator */}
         {isActive && (
-          <div className="absolute bottom-1 w-1.5 h-1.5 bg-[#052ec0] rounded-full shadow-[0_0_8px_#052ec0]" />
+          <div className="absolute bottom-2 w-1.5 h-1.5 bg-[#052ce0] rounded-full shadow-[0_0_8px_#052ce0]" />
         )}
       </>
     )}

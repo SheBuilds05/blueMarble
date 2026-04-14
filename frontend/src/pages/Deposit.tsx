@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 
 interface Account {
   id: string;
@@ -9,9 +8,13 @@ interface Account {
   accountNumber: string;
 }
 
+interface Notification {
+  title: string;
+  message: string;
+  type: 'transaction';
+}
+
 const Deposit = () => {
-  const { user, addNotification } = useAuth();
-  
   // Dummy accounts data in ZAR
   const [accounts, setAccounts] = useState<Account[]>([
     {
@@ -55,6 +58,13 @@ const Deposit = () => {
       currency: 'ZAR',
       minimumFractionDigits: 2
     }).format(amount);
+  };
+
+  const addNotification = (notification: Notification) => {
+    // Simple console notification instead of auth context
+    console.log('Notification:', notification);
+    // You can replace this with your own notification system (e.g., toast, alert, etc.)
+    alert(`${notification.title}: ${notification.message}`);
   };
 
   const handleTransfer = () => {
