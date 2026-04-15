@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/SheBuilds05/blueMarble#readme",
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "autoprefixer": "^10.4.27",
     "axios": "^1.15.0",
     "lucide-react": "^1.8.0",
