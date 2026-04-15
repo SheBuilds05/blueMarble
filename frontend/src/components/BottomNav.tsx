@@ -33,11 +33,16 @@ const BottomNav = () => {
     navigate(path);
   };
 
+  /**
+   * CORRECTED NAV ITEMS:
+   * - ACCOUNT now goes to '/accounts'
+   * - CARDS now goes to '/cards'
+   */
   const navItems = [
     { path: '/dashboard', icon: <Wallet size={22} />, label: 'HOME' },
-    { path: '/profile', icon: <User size={22} />, label: 'ACCOUNT' },
+    { path: '/accounts', icon: <User size={22} />, label: 'ACCOUNT' },
     { path: '/history', icon: <History size={22} />, label: 'HISTORY' },
-    { path: '/withdraw', icon: <CreditCard size={22} />, label: 'CARDS' },
+    { path: '/cards', icon: <CreditCard size={22} />, label: 'CARDS' },
   ];
 
   return (

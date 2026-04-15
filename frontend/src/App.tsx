@@ -12,7 +12,7 @@ import History from './pages/History';
 import Buy from './pages/Buy';
 import Deposit from './pages/Deposit';
 import Notifications from './pages/Notifications';
-
+import Cards from './pages/Cards';
 
 
 function App() {
@@ -34,6 +34,8 @@ function App() {
           <Route path="/buy" element={<Buy />} />
           <Route path="/deposit" element={<Deposit />} />
           <Route path="/notification" element={<Notifications />} />
+          // Inside your Routes block:
+<Route path="/cards" element={<Cards />} />
           {/* Ensure Deposit is imported or created to avoid "not defined" errors */}
           {/* <Route path="/deposit" element={<Deposit />} /> */}
         </Routes>
