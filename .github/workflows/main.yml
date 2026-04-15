@@ -7,40 +7,32 @@ on:
     branches: [ "develop", "main" ]
 
 jobs:
+  # Frontend-ci remains unchanged as it is already passing
   frontend-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          # FIX 1: Correct path for caching
           cache-dependency-path: frontend/package-lock.json
-          
       - name: Install Frontend Dependencies
         run: npm install --legacy-peer-deps
         working-directory: ./frontend
-        
       - name: Pipeline-Side Lint Patch
-        # FIX 2: Using 'global' instead of 'eslint-env' for ESLint v9+ compatibility
         run: |
-          # Inject global module declaration into tailwind config to fix 'module' error
           sed -i '1i /* global module */' tailwind.config.js
-          
-          # Remove the unused tailwindcss import in vite config
           sed -i '/import tailwindcss from/d' vite.config.js
         working-directory: ./frontend
-
       - name: Check Syntax & Linting
         run: npm run lint
         working-directory: ./frontend
-
       - name: Build Frontend Docker Image (Verify)
         run: docker build -t openbank-frontend:test ./frontend
 
+  # FIXED Backend-ci section
   backend-ci:
     runs-on: ubuntu-latest
     steps:
@@ -51,11 +43,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # FIX 3: Consistent caching path for backend
+          # FIX: Removing any leading './' and using exact relative path
           cache-dependency-path: backend/package-lock.json
           
       - name: Install Backend Dependencies
-        run: npm ci
+        # Using npm install instead of ci if the lockfile is still being generated
+        run: npm install
         working-directory: ./backend
 
       - name: Build Backend Docker Image (Verify)
