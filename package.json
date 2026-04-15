@@ -1,0 +1,29 @@
+{
+  "name": "bluemarble",
+  "version": "1.0.0",
+  "description": "**OpenBank Cloud Simulation**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SheBuilds05/blueMarble.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SheBuilds05/blueMarble/issues"
+  },
+  "homepage": "https://github.com/SheBuilds05/blueMarble#readme",
+  "dependencies": {
+    "autoprefixer": "^10.4.27",
+    "axios": "^1.15.0",
+    "lucide-react": "^1.8.0",
+    "postcss": "^8.5.9",
+    "react-router-dom": "^7.14.0",
+    "tailwindcss": "^4.2.2"
+  }
+}
