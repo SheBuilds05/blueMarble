@@ -1,0 +1,38 @@
+name: Develop Branch CI
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  integration-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Environment Setup
+        run: |
+          echo "Installing Node.js and Docker tools..."
+          # Tools required per Week 1 objectives [cite: 42]
+          echo "Environment ready for OpenBank development."
+
+      - name: Build Simulation
+        run: |
+          echo "Simulating application build..."
+          # This will be replaced by 'npm install' once code is present [cite: 42]
+          echo "Build successful."
+
+      - name: Test Simulation
+        run: |
+          echo "Simulating API tests..."
+          # This will be replaced by Postman/Jest tests in Week 2 [cite: 61, 68]
+          echo "All tests passed (placeholder)."
+
+      - name: Containerization Simulation
+        run: |
+          echo "Simulating Docker build..."
+          # This will be replaced by 'docker build' in Week 3 [cite: 72]
+          echo "Docker images tagged and ready."
