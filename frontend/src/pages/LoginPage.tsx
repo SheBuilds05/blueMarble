@@ -47,7 +47,7 @@ const LoginPage: React.FC = () => {
 
           <button 
             type="submit"
-            className="w-full bg-blue-marble-primary text-white font-bold py-5 rounded-2xl shadow-xl transition-all active:scale-[0.98]"
+            className="w-full bg-blue-marble-primary text-black font-bold py-5 rounded-2xl shadow-xl transition-all active:scale-[0.98]"
           >
             Sign In
           </button>
