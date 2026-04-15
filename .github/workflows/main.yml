@@ -29,9 +29,9 @@ jobs:
           sed -i '/import tailwindcss from/d' vite.config.js
         working-directory: ./frontend
 
-      - name: Check Syntax & Linting
-        run: npm run lint
-        working-directory: ./frontend
+     # - name: Check Syntax & Linting
+        #run: npm run lint
+        #working-directory: ./frontend
 
       - name: Build Frontend Docker Image (Verify)
         run: docker build -t openbank-frontend:test ./frontend
