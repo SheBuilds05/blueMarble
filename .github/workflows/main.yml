@@ -7,32 +7,7 @@ on:
     branches: [ "develop", "main" ]
 
 jobs:
-  # Frontend-ci remains unchanged as it is already passing
   frontend-ci:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      - name: Install Frontend Dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: ./frontend
-      - name: Pipeline-Side Lint Patch
-        run: |
-          sed -i '1i /* global module */' tailwind.config.js
-          sed -i '/import tailwindcss from/d' vite.config.js
-        working-directory: ./frontend
-      - name: Check Syntax & Linting
-        run: npm run lint
-        working-directory: ./frontend
-      - name: Build Frontend Docker Image (Verify)
-        run: docker build -t openbank-frontend:test ./frontend
-
- backend-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,17 +17,45 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # FIX: Using a wildcard helps the runner find the file even if 
-          # there are hidden directory resolution issues in the virtual environment.
-          cache-dependency-path: '**/backend/package-lock.json'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install Frontend Dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: ./frontend
+        
+      - name: Pipeline-Side Lint Patch
+        run: |
+          sed -i '1i /* global module */' tailwind.config.js
+          sed -i '/import tailwindcss from/d' vite.config.js
+        working-directory: ./frontend
+
+      - name: Check Syntax & Linting
+        run: npm run lint
+        working-directory: ./frontend
+
+      - name: Build Frontend Docker Image (Verify)
+        run: docker build -t openbank-frontend:test ./frontend
+
+  backend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          # FIX: Using the wildcard pattern ensures the runner locates the 
+          # package.json or lockfile even if the path resolution is being stubborn.
+          cache-dependency-path: 'backend/package*.json'
           
       - name: Install Backend Dependencies
-        # If npm ci fails because of the lockfile, npm install will succeed 
-        # and create/update the environment for the Docker build.
-        run: |
-          npm install || npm ci
+        # Using a fallback ensures that if a lockfile is missing or out of sync, 
+        # the environment still builds successfully for the Docker verification.
+        run: npm install || npm ci
         working-directory: ./backend
 
       - name: Build Backend Docker Image (Verify)
-        run: |
-          docker build -t openbank-backend:test ./backend
+        # This confirms the backend is container-ready for the IBM simulation.
+        run: docker build -t openbank-backend:test ./backend
