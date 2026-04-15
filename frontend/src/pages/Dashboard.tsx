@@ -104,6 +104,8 @@ const Dashboard: React.FC = () => {
               onClick={() => action.path !== '#' ? navigate(action.path) : alert("Service coming soon")}
               className="bg-[#ADE8F4]/20 backdrop-blur-lg border border-white/30 p-8 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-[#ADE8F4]/30 active:scale-95 transition-all group shadow-lg"
             >
+              // Inside your Quick Actions / Dashboard buttons
+<button onClick={() => navigate('/pay-bills')}>Pay Bills</button>
               <div className="text-[#052ce0] group-hover:scale-110 transition-transform drop-shadow-sm p-3 bg-white/20 rounded-2xl">
                 {action.icon}
               </div>

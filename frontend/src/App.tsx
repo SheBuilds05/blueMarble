@@ -25,7 +25,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/accounts" element={<Accounts />} />
-          <Route path="/pay" element={<Payments />} />
+          <Route path="/pay-bills" element={<Payments />} />
           <Route path="/history" element={<History />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/withdraw" element={<Withdraw />} />

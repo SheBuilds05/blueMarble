@@ -1,5 +1,6 @@
 import React from 'react';
 import { CreditCard, ShieldCheck, Eye, Lock, Plus, ChevronRight } from 'lucide-react';
+import BottomNav from '../components/BottomNav'; // Import the BottomNav component
 
 const Cards = () => {
   return (
@@ -15,7 +16,7 @@ const Cards = () => {
         </button>
       </div>
 
-      {/* The Platinum Card (Matches image_6f3653) */}
+      {/* The Platinum Card (Matches blueMarble branding) */}
       <div className="relative w-full aspect-[1.586/1] bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] p-8 text-[#052ce0] overflow-hidden mb-12">
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#052ce0]/5 rounded-full -mr-20 -mt-20" />
         
@@ -54,6 +55,9 @@ const Cards = () => {
         <ControlItem icon={<Lock size={20} />} label="Freeze Card" isToggle />
         <ControlItem icon={<ShieldCheck size={20} />} label="Atm Limits" />
       </div>
+
+      {/* Navigation Bar */}
+      <BottomNav />
     </div>
   );
 };
