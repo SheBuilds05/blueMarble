@@ -32,8 +32,7 @@ jobs:
       - name: Build Frontend Docker Image (Verify)
         run: docker build -t openbank-frontend:test ./frontend
 
-  # FIXED Backend-ci section
-  backend-ci:
+ backend-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,13 +42,17 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # FIX: Removing any leading './' and using exact relative path
-          cache-dependency-path: backend/package-lock.json
+          # FIX: Using a wildcard helps the runner find the file even if 
+          # there are hidden directory resolution issues in the virtual environment.
+          cache-dependency-path: '**/backend/package-lock.json'
           
       - name: Install Backend Dependencies
-        # Using npm install instead of ci if the lockfile is still being generated
-        run: npm install
+        # If npm ci fails because of the lockfile, npm install will succeed 
+        # and create/update the environment for the Docker build.
+        run: |
+          npm install || npm ci
         working-directory: ./backend
 
       - name: Build Backend Docker Image (Verify)
-        run: docker build -t openbank-backend:test ./backend
+        run: |
+          docker build -t openbank-backend:test ./backend
