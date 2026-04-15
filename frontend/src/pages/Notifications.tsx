@@ -1,135 +1,242 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 
-const Withdraw: React.FC = () => {
-  const navigate = useNavigate();
-  const [amount, setAmount] = useState<string>('');
-  const [localBalance, setLocalBalance] = useState<number>(12450.00);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'transaction' | 'alert' | 'success';
+  read: boolean;
+  createdAt: string;
+}
 
-  const handleWithdraw = () => {
-    const value = parseFloat(amount);
-    setSuccess(null);
-    setError(null);
-    if (!value || value <= 0) {
-      setError('Please enter a valid amount.');
-      return;
+const Notifications = () => {
+  // Sample notifications data
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      title: 'Transfer Successful',
+      message: 'R500.00 transferred from Main Savings to Everyday Cheque',
+      type: 'transaction',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+    },
+    {
+      id: '2',
+      title: 'Welcome to FinTech App',
+      message: 'Thank you for joining us! Start managing your finances today.',
+      type: 'success',
+      read: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    },
+    {
+      id: '3',
+      title: 'Security Alert',
+      message: 'New login detected from Chrome on Windows',
+      type: 'alert',
+      read: true,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    },
+    {
+      id: '4',
+      title: 'Bill Payment Reminder',
+      message: 'Your electricity bill is due in 3 days',
+      type: 'alert',
+      read: true,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
+    },
+  ]);
+
+  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+
+  const markAsRead = (id: string) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
+  };
+
+  const deleteNotification = (id: string) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.filter(notif => notif.id !== id)
+    );
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif => ({ ...notif, read: true }))
+    );
+  };
+
+  const filteredNotifications = notifications.filter(notif => {
+    if (filter === 'unread') return !notif.read;
+    if (filter === 'read') return notif.read;
+    return true;
+  });
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString('en-ZA');
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'transaction': return '💳';
+      case 'alert': return '⚠️';
+      case 'success': return '✓';
+      default: return '📬';
     }
-    if (value > localBalance) {
-      setError('Insufficient funds.');
-      return;
-    }
-    setLocalBalance(prev => prev - value);
-    setSuccess(`R${value.toFixed(2)} withdrawn successfully.`);
-    setAmount('');
-    setTimeout(() => setSuccess(null), 3000);
   };
 
   return (
-    /* FIXED: Removed max-w constraints and applied w-full for full-screen edge-to-edge layout */
-    <div
-      className="min-h-screen w-full pb-32 overflow-x-hidden"
-      style={{ background: "linear-gradient(to bottom right, #052ce0, #ADE8F4)" }}
-    >
-      {/* Header - Horizontal padding applied here to align with Dashboard */}
-      <div className="flex items-center gap-4 px-6 py-8 md:px-12 mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white hover:bg-white/40 transition-all active:scale-90"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-md">Withdraw Funds</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8">
+      {/* Decorative Header Line */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#052CE0] via-[#3b82f6] to-[#052CE0]"></div>
+
+      {/* Header */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#052CE0] to-[#1e40af] shadow-lg mb-4">
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-semibold text-[#1a2a4a] tracking-tight mb-2">Notifications</h1>
+        <div className="w-12 h-px bg-[#052CE0] mx-auto mb-3"></div>
+        <p className="text-[#4a5a7a] text-sm">Stay updated with your account activity</p>
       </div>
 
-      <main className="space-y-8 px-6 md:px-12 max-w-4xl mx-auto">
-        {/* Balance Card - Matching Dashboard Style */}
-        <div className="bg-white/30 backdrop-blur-xl border border-white/40 p-10 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden w-full">
-          <p className="text-white/80 uppercase tracking-widest text-[10px] font-black mb-2">Available Balance</p>
-          <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 drop-shadow-lg">
-            R {localBalance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
-          </h2>
-          <div className="inline-block px-6 py-2 bg-white/20 rounded-full border border-white/10 backdrop-blur-sm">
-            <p className="text-[11px] text-white font-bold uppercase tracking-widest">
-              Savings Account •••• 4453
-            </p>
-          </div>
-        </div>
+      {/* Notifications Card */}
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Header with Actions */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex justify-between items-center flex-wrap gap-4">
+              <div>
+                <h2 className="text-[#1a2a4a] text-xl font-semibold">All Notifications</h2>
+                {unreadCount > 0 && (
+                  <p className="text-[#4a5a7a] text-sm mt-1">{unreadCount} unread</p>
+                )}
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[#4a5a7a] text-sm hover:bg-gray-100 hover:text-[#1a2a4a] transition-all"
+                >
+                  Mark all as read
+                </button>
+              )}
+            </div>
 
-        {/* Feedback Messages */}
-        {success && (
-          <div className="flex items-center gap-3 p-5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 rounded-3xl text-emerald-100 text-sm font-bold animate-in fade-in slide-in-from-top-2">
-            <CheckCircle2 size={20} />
-            {success}
-          </div>
-        )}
-        {error && (
-          <div className="flex items-center gap-3 p-5 bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-3xl text-red-100 text-sm font-bold animate-in fade-in slide-in-from-top-2">
-            <AlertCircle size={20} />
-            {error}
-          </div>
-        )}
-
-        {/* Input Section */}
-        <div className="bg-white/20 backdrop-blur-lg border border-white/30 p-10 rounded-[3rem] shadow-2xl space-y-8">
-          <div className="space-y-4">
-            <label className="text-[12px] font-black text-white uppercase tracking-[0.3em] ml-2 opacity-80">
-              Amount to Withdraw
-            </label>
-            <div className="relative group">
-              <span className="absolute left-8 top-1/2 -translate-y-1/2 text-3xl font-black text-[#052ce0]">R</span>
-              <input
-                type="number"
-                value={amount}
-                onChange={e => { setAmount(e.target.value); setError(null); }}
-                className="w-full bg-white/40 border-2 border-white/20 rounded-[2rem] py-8 pl-16 pr-8 text-4xl font-bold text-white placeholder-white/30 outline-none focus:border-white/60 focus:bg-white/50 transition-all shadow-inner"
-                placeholder="0.00"
-              />
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mt-6">
+              {[
+                { id: 'all', label: 'All' },
+                { id: 'unread', label: 'Unread' },
+                { id: 'read', label: 'Read' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilter(tab.id as typeof filter)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    filter === tab.id
+                      ? 'bg-[#052CE0] text-white shadow-sm'
+                      : 'text-[#4a5a7a] hover:text-[#1a2a4a] hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.label}
+                  {tab.id === 'unread' && unreadCount > 0 && (
+                    <span className="ml-1 text-xs">({unreadCount})</span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Quick Amount Grid */}
-          <div className="grid grid-cols-3 gap-4">
-            {['100', '200', '500'].map(val => (
-              <button
-                key={val}
-                onClick={() => { setAmount(val); setError(null); }}
-                className={`py-5 rounded-2xl font-black text-base transition-all active:scale-95 border-2 shadow-md ${
-                  amount === val
-                  ? 'bg-white text-[#052ce0] border-white shadow-xl scale-105'
-                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                }`}
-              >
-                R {val}
-              </button>
-            ))}
+          {/* Notifications List */}
+          <div className="divide-y divide-gray-100">
+            {filteredNotifications.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-10 h-10 text-[#4a5a7a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <p className="text-[#4a5a7a] text-sm font-medium">No notifications</p>
+                <p className="text-[#aaaaaa] text-xs mt-1">When you receive notifications, they'll appear here</p>
+              </div>
+            ) : (
+              filteredNotifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`p-5 transition-all ${
+                    !notif.read ? 'bg-blue-50/30' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    {/* Icon */}
+                    <div className="flex-shrink-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                        !notif.read 
+                          ? 'bg-blue-100 text-[#052CE0]' 
+                          : 'bg-gray-100 text-[#4a5a7a]'
+                      }`}>
+                        {getTypeIcon(notif.type)}
+                      </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start flex-wrap gap-2">
+                        <h3 className={`text-base ${
+                          !notif.read ? 'text-[#1a2a4a] font-semibold' : 'text-[#4a5a7a] font-medium'
+                        }`}>
+                          {notif.title}
+                        </h3>
+                        <span className="text-[#aaaaaa] text-xs">
+                          {formatDate(notif.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-[#4a5a7a] text-sm mt-1">{notif.message}</p>
+                      
+                      {/* Actions */}
+                      <div className="flex gap-4 mt-3">
+                        {!notif.read && (
+                          <button
+                            onClick={() => markAsRead(notif.id)}
+                            className="text-xs text-[#052CE0] font-medium hover:text-[#052CE0]/70 transition-colors"
+                          >
+                            Mark as read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteNotification(notif.id)}
+                          className="text-xs text-[#999999] hover:text-[#666666] transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-
-          {/* Action Button */}
-          <button
-            onClick={handleWithdraw}
-            className="w-full bg-[#052ce0] hover:brightness-110 text-white py-6 rounded-[2rem] font-black text-xl shadow-[0_15px_30px_rgba(5,46,224,0.3)] active:scale-95 transition-all mt-4"
-          >
-            Confirm Withdrawal
-          </button>
         </div>
-
-        {/* Brand Slogan Footer */}
-        <div className="text-center py-10">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="h-[1px] w-12 bg-white/30" />
-            <span className="text-[14px] font-black text-white/60 uppercase tracking-[0.4em]">blueMarble</span>
-            <div className="h-[1px] w-12 bg-white/30" />
-          </div>
-          <p className="text-sm md:text-base text-white font-semibold italic tracking-wide drop-shadow-sm">
-            "Your World, Your Bank, Your Freedom."
-          </p>
-        </div>
-      </main>
+      </div>
     </div>
   );
 };
 
-export default Withdraw;
+export default Notifications;
