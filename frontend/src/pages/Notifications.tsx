@@ -1,208 +1,135 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'transaction' | 'alert' | 'success';
-  read: boolean;
-  createdAt: string;
-}
+const Withdraw: React.FC = () => {
+  const navigate = useNavigate();
+  const [amount, setAmount] = useState<string>('');
+  const [localBalance, setLocalBalance] = useState<number>(12450.00);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-const Notifications = () => {
-  // Sample notifications data
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'Transfer Successful',
-      message: 'R500.00 transferred from Main Savings to Everyday Cheque',
-      type: 'transaction',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), 
-    },
-    {
-      id: '2',
-      title: 'Welcome to OpenBank',
-      message: 'Thank you for joining us! Start managing your finances today.',
-      type: 'success',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    },
-    {
-      id: '3',
-      title: 'Security Alert',
-      message: 'New login detected from Chrome on Windows',
-      type: 'alert',
-      read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    },
-    {
-      id: '4',
-      title: 'Bill Payment Reminder',
-      message: 'Your electricity bill is due in 3 days',
-      type: 'alert',
-      read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    },
-  ]);
-
-  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
-
-  const filteredNotifications = notifications.filter(notif => {
-    if (filter === 'unread') return !notif.read;
-    if (filter === 'read') return notif.read;
-    return true;
-  });
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-ZA');
-  };
-
-  const getTypeStyles = (type: string, isRead: boolean) => {
-    switch (type) {
-      case 'transaction': return { icon: '💳', bg: isRead ? 'bg-gray-100' : 'bg-blue-100', color: 'text-blue-600' };
-      case 'alert': return { icon: '⚠️', bg: isRead ? 'bg-gray-100' : 'bg-amber-100', color: 'text-amber-600' };
-      case 'success': return { icon: '✓', bg: isRead ? 'bg-gray-100' : 'bg-emerald-100', color: 'text-emerald-600' };
-      default: return { icon: '📬', bg: 'bg-gray-100', color: 'text-gray-600' };
+  const handleWithdraw = () => {
+    const value = parseFloat(amount);
+    setSuccess(null);
+    setError(null);
+    if (!value || value <= 0) {
+      setError('Please enter a valid amount.');
+      return;
     }
+    if (value > localBalance) {
+      setError('Insufficient funds.');
+      return;
+    }
+    setLocalBalance(prev => prev - value);
+    setSuccess(`R${value.toFixed(2)} withdrawn successfully.`);
+    setAmount('');
+    setTimeout(() => setSuccess(null), 3000);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8 relative">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#052CE0] via-[#3b82f6] to-[#052CE0]"></div>
-
-      {/* Exit/Back Button */}
-      <div className="max-w-3xl mx-auto mb-6 flex items-center justify-between">
-        <button 
-          onClick={() => window.history.back()} 
-          className="group flex items-center justify-center w-10 h-10 rounded-full bg-white/60 backdrop-blur-md border border-white/40 shadow-sm hover:bg-[#052CE0] transition-all duration-300"
+    /* FIXED: Removed max-w constraints and applied w-full for full-screen edge-to-edge layout */
+    <div
+      className="min-h-screen w-full pb-32 overflow-x-hidden"
+      style={{ background: "linear-gradient(to bottom right, #052ce0, #ADE8F4)" }}
+    >
+      {/* Header - Horizontal padding applied here to align with Dashboard */}
+      <div className="flex items-center gap-4 px-6 py-8 md:px-12 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white hover:bg-white/40 transition-all active:scale-90"
         >
-          <svg className="w-5 h-5 text-[#052CE0] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft size={20} />
         </button>
-        
-        {unreadCount > 0 && (
-          <button onClick={markAllAsRead} className="text-xs font-bold text-[#052CE0] hover:underline uppercase tracking-tight">
-            Mark all read
-          </button>
-        )}
+        <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-md">Withdraw Funds</h1>
       </div>
 
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#1a2a4a] tracking-tight">Notifications</h1>
-        <p className="text-[#4a5a7a] text-sm mt-1">Updates on your activity and security</p>
-      </div>
-
-      <div className="max-w-3xl mx-auto">
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 p-1 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200 w-fit mx-auto">
-          {['all', 'unread', 'read'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setFilter(t as any)}
-              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
-                filter === t ? 'bg-[#052CE0] text-white shadow-md' : 'text-[#4a5a7a] hover:bg-gray-100'
-              }`}
-            >
-              {t} {t === 'unread' && unreadCount > 0 && `(${unreadCount})`}
-            </button>
-          ))}
-        </div>
-
-        {/* List Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="divide-y divide-gray-100">
-            {filteredNotifications.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center text-2xl">Inbox</div>
-                <p className="text-[#4a5a7a] font-medium">Nothing to see here</p>
-                <p className="text-[#aaaaaa] text-xs mt-1">We'll notify you when something happens.</p>
-              </div>
-            ) : (
-              filteredNotifications.map((notif) => {
-                const styles = getTypeStyles(notif.type, notif.read);
-                return (
-                  <div key={notif.id} className={`p-5 transition-all group ${!notif.read ? 'bg-blue-50/40' : 'hover:bg-gray-50/80'}`}>
-                    <div className="flex gap-4">
-                      {/* Icon Container */}
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-2xl ${styles.bg} ${styles.color} flex items-center justify-center text-xl shadow-sm`}>
-                        {styles.icon}
-                      </div>
-                      
-                      {/* Text Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
-                          <h3 className={`text-sm truncate ${!notif.read ? 'text-[#1a2a4a] font-bold' : 'text-[#4a5a7a] font-semibold'}`}>
-                            {notif.title}
-                          </h3>
-                          <span className="text-[10px] font-bold text-[#aaaaaa] whitespace-nowrap ml-2">
-                            {formatDate(notif.createdAt)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-[#4a5a7a] leading-relaxed mb-3">
-                          {notif.message}
-                        </p>
-                        
-                        {/* Interaction Buttons */}
-                        <div className="flex items-center gap-4">
-                          {!notif.read && (
-                            <button 
-                              onClick={() => markAsRead(notif.id)}
-                              className="text-[11px] font-bold text-[#052CE0] uppercase tracking-wider hover:opacity-70"
-                            >
-                              Mark Read
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => deleteNotification(notif.id)}
-                            className="text-[11px] font-bold text-red-400 uppercase tracking-wider hover:text-red-600"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Unread Indicator Dot */}
-                      {!notif.read && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#052CE0] animate-pulse mt-1"></div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
+      <main className="space-y-8 px-6 md:px-12 max-w-4xl mx-auto">
+        {/* Balance Card - Matching Dashboard Style */}
+        <div className="bg-white/30 backdrop-blur-xl border border-white/40 p-10 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden w-full">
+          <p className="text-white/80 uppercase tracking-widest text-[10px] font-black mb-2">Available Balance</p>
+          <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 drop-shadow-lg">
+            R {localBalance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+          </h2>
+          <div className="inline-block px-6 py-2 bg-white/20 rounded-full border border-white/10 backdrop-blur-sm">
+            <p className="text-[11px] text-white font-bold uppercase tracking-widest">
+              Savings Account •••• 4453
+            </p>
           </div>
         </div>
-      </div>
+
+        {/* Feedback Messages */}
+        {success && (
+          <div className="flex items-center gap-3 p-5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 rounded-3xl text-emerald-100 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+            <CheckCircle2 size={20} />
+            {success}
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center gap-3 p-5 bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-3xl text-red-100 text-sm font-bold animate-in fade-in slide-in-from-top-2">
+            <AlertCircle size={20} />
+            {error}
+          </div>
+        )}
+
+        {/* Input Section */}
+        <div className="bg-white/20 backdrop-blur-lg border border-white/30 p-10 rounded-[3rem] shadow-2xl space-y-8">
+          <div className="space-y-4">
+            <label className="text-[12px] font-black text-white uppercase tracking-[0.3em] ml-2 opacity-80">
+              Amount to Withdraw
+            </label>
+            <div className="relative group">
+              <span className="absolute left-8 top-1/2 -translate-y-1/2 text-3xl font-black text-[#052ce0]">R</span>
+              <input
+                type="number"
+                value={amount}
+                onChange={e => { setAmount(e.target.value); setError(null); }}
+                className="w-full bg-white/40 border-2 border-white/20 rounded-[2rem] py-8 pl-16 pr-8 text-4xl font-bold text-white placeholder-white/30 outline-none focus:border-white/60 focus:bg-white/50 transition-all shadow-inner"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          {/* Quick Amount Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            {['100', '200', '500'].map(val => (
+              <button
+                key={val}
+                onClick={() => { setAmount(val); setError(null); }}
+                className={`py-5 rounded-2xl font-black text-base transition-all active:scale-95 border-2 shadow-md ${
+                  amount === val
+                  ? 'bg-white text-[#052ce0] border-white shadow-xl scale-105'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                }`}
+              >
+                R {val}
+              </button>
+            ))}
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={handleWithdraw}
+            className="w-full bg-[#052ce0] hover:brightness-110 text-white py-6 rounded-[2rem] font-black text-xl shadow-[0_15px_30px_rgba(5,46,224,0.3)] active:scale-95 transition-all mt-4"
+          >
+            Confirm Withdrawal
+          </button>
+        </div>
+
+        {/* Brand Slogan Footer */}
+        <div className="text-center py-10">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-[1px] w-12 bg-white/30" />
+            <span className="text-[14px] font-black text-white/60 uppercase tracking-[0.4em]">blueMarble</span>
+            <div className="h-[1px] w-12 bg-white/30" />
+          </div>
+          <p className="text-sm md:text-base text-white font-semibold italic tracking-wide drop-shadow-sm">
+            "Your World, Your Bank, Your Freedom."
+          </p>
+        </div>
+      </main>
     </div>
   );
 };
 
-export default Notifications;
+export default Withdraw;
