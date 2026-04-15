@@ -1,75 +1,56 @@
-name: Production Deployment Pipeline
+name: Feature Branch CI 
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [ "feature/*", "develop", "main" ]
+  pull_request:
+    branches: [ "develop", "main" ]
 
 jobs:
-  validate-and-release:
+  frontend-ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Backend Image (Conditional)
-        run: |
-          # Check if the folder exists and has a package.json
-          if [ -f "./backend/package.json" ] && grep -q '"build":' ./backend/package.json; then
-            echo "Build script found. Building Docker image..."
-            docker build -t openbank-backend:latest ./backend
-          else
-            echo "No build script or backend code found. Building skeleton image..."
-            # This creates a dummy image so the step technically passes
-            docker build -t openbank-backend:latest - <<EOF
-            FROM node:18-slim
-            WORKDIR /app
-            RUN echo "Waiting for code..." > status.txt
-            CMD ["cat", "status.txt"]
-          EOF
-          fi
-
-      - name: Build Frontend Image (Conditional)
-        run: |
-          if [ -f "./frontend/package.json" ] && grep -q '"build":' ./frontend/package.json; then
-            echo "Build script found. Building Docker image..."
-            docker build -t openbank-frontend:latest ./frontend
-          else
-            echo "No build script or frontend code found. Building skeleton image..."
-            docker build -t openbank-frontend:latest - <<EOF
-            FROM node:18-slim
-            WORKDIR /app
-            RUN echo "Waiting for code..." > status.txt
-            CMD ["cat", "status.txt"]
-          EOF
-          fi
-
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Deploy to Kubernetes
-        run: |
-          # Keep deployment logic but bypass if Kubeconfig is missing
-          if [ -z "${{ secrets.KUBECONFIG }}" ]; then
-            echo "Kubeconfig secret not found. Build successful, skipping deployment."
-            exit 0
-          fi
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
           
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
-          export KUBECONFIG=kubeconfig.yaml
+      - name: Install Frontend Dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: ./frontend
+        
+      - name: Syntax & Lint Check
+        # REMOVED || true
+        run: npm run lint
+        working-directory: ./frontend
+
+      - name: Run Unit Tests
+        run: npm test -- --run
+        working-directory: ./frontend
+        env:
+          CI: true
+
+  backend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
           
-          # Only apply if the k8s directory actually exists
-          if [ -d "k8s" ]; then
-            kubectl apply -f k8s/namespace.yaml
-            kubectl apply -f k8s/secrets.yaml
-            kubectl apply -f k8s/configmap.yaml
-            kubectl apply -f k8s/mongodb/
-            kubectl apply -f k8s/backend/
-            kubectl apply -f k8s/frontend/
-            kubectl apply -f k8s/ingress.yaml
-          else
-            echo "k8s directory missing. Skipping apply."
-          fi
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Run Backend Tests
+        run: npm test
+        working-directory: ./backend
+        env:
+          CI: true
+          DATABASE_URL: mongodb://localhost:27017/openbank_db
