@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // Path matches your assets folder
-import logo from "../assets/Logo.png";
+import logo from "./assets/Logo.png";
 import BottomNav from '../components/BottomNav';
 
 const Dashboard: React.FC = () => {

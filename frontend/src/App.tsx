@@ -25,7 +25,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/accounts" element={<Accounts />} />
-          <Route path="/pay-bills" element={<Payments />} />
+          <Route path="/pay" element={<Payments />} />
           <Route path="/history" element={<History />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/withdraw" element={<Withdraw />} />
@@ -35,7 +35,7 @@ function App() {
           <Route path="/deposit" element={<Deposit />} />
           <Route path="/notification" element={<Notifications />} />
           // Inside your Routes block:
-<Route path="/cards" element={<Cards />} />
+          <Route path="/cards" element={<Cards />} />
           {/* Ensure Deposit is imported or created to avoid "not defined" errors */}
           {/* <Route path="/deposit" element={<Deposit />} /> */}
         </Routes>
