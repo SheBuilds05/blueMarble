@@ -24,7 +24,7 @@ const BottomNav = () => {
   const quickActions = [
     { label: 'Deposit', icon: <ArrowDownCircle size={20} />, path: '/deposit', color: 'bg-emerald-500' },
     { label: 'Withdraw', icon: <ArrowUpCircle size={20} />, path: '/withdraw', color: 'bg-blue-600' },
-    { label: 'Pay Bills', icon: <Banknote size={20} />, path: '/pay-bills', color: 'bg-indigo-600' },
+    { label: 'Pay Bills', icon: <Banknote size={20} />, path: '/pay', color: 'bg-indigo-600' },
     { label: 'Buy', icon: <ShoppingBag size={20} />, path: '/buy', color: 'bg-violet-600' },
   ];
 
