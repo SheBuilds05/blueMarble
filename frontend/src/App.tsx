@@ -1,29 +1,46 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-// Import all your existing page components
-import Landing from './pages/Landing';
-import Login from './pages/Login';
+import LoginPage from './pages/LoginPage';
+import Accounts from './pages/Accounts';
+import Payments from './pages/PaymentPage'; 
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
+import Withdraw from './pages/Withdraw'; 
+import Profile from './pages/Profile';
+import ContactUs from './pages/ContactUs';
+import Landing from './pages/Landing';
 import History from './pages/History';
+import Buy from './pages/Buy';
 import Deposit from './pages/Deposit';
-import Withdraw from './pages/Withdraw';
+import Notifications from './pages/Notifications';
+import Cards from './pages/Cards';
 
-import './index.css';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Entrance & Auth */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
+      {/* Main wrapper with your signature blueMarble gradient */}
         
-        {/* Banking Features */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/deposit" element={<Deposit />} />
-        <Route path="/withdraw" element={<Withdraw />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/pay-bills" element={<Payments />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/withdraw" element={<Withdraw />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/buy" element={<Buy />} />
+          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/notification" element={<Notifications />} />
+          // Inside your Routes block:
+<Route path="/cards" element={<Cards />} />
+          {/* Ensure Deposit is imported or created to avoid "not defined" errors */}
+          {/* <Route path="/deposit" element={<Deposit />} /> */}
+        </Routes>
+
+        
     </Router>
   );
 }
