@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          # FIX 1: Corrected path for caching (removed leading ./)
+          # FIX 1: Correct path for caching
           cache-dependency-path: frontend/package-lock.json
           
       - name: Install Frontend Dependencies
@@ -25,12 +25,12 @@ jobs:
         working-directory: ./frontend
         
       - name: Pipeline-Side Lint Patch
-        # FIX 2: This fixes the code ONLY inside the runner environment
+        # FIX 2: Using 'global' instead of 'eslint-env' for ESLint v9+ compatibility
         run: |
-          # 1. Inject eslint-env node into tailwind config to fix 'module' error
-          sed -i '1i /* eslint-env node */' tailwind.config.js
+          # Inject global module declaration into tailwind config to fix 'module' error
+          sed -i '1i /* global module */' tailwind.config.js
           
-          # 2. Remove the unused tailwindcss import in vite config
+          # Remove the unused tailwindcss import in vite config
           sed -i '/import tailwindcss from/d' vite.config.js
         working-directory: ./frontend
 
