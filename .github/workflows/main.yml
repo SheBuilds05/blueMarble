@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          # FIXED: Relates to your previous cache error
           cache-dependency-path: frontend/package-lock.json
           
       - name: Install Frontend Dependencies
@@ -24,12 +25,11 @@ jobs:
         working-directory: ./frontend
         
       - name: Syntax & Lint Check
-        # Now that the files are fixed, this gate will pass
+        # This strict gate will now pass once files are updated
         run: npm run lint
         working-directory: ./frontend
 
       - name: Build Frontend Docker Image (Verify)
-        # This confirms the Dockerfile is valid for the IBM simulation
         run: |
           docker build -t openbank-frontend:test ./frontend
 
