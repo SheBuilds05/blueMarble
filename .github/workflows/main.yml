@@ -20,7 +20,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
           
       - name: Install Frontend Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install # --legacy-peer-deps
         working-directory: ./frontend
         
       - name: Pipeline-Side Lint Patch
