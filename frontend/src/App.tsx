@@ -1,30 +1,42 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import Accounts from './pages/Accounts';
+import Payments from './pages/PaymentPage'; 
 import Dashboard from './pages/Dashboard';
-import Withdraw from './pages/Withdraw';
+import Settings from './pages/Settings';
+import Withdraw from './pages/Withdraw'; 
 import Profile from './pages/Profile';
 import ContactUs from './pages/ContactUs';
+import Landing from './pages/Landing';
+import History from './pages/History';
+import Buy from './pages/Buy';
+import Deposit from './pages/Deposit';
+import Notifications from './pages/Notifications';
+import Cards from './pages/Cards';
+
 
 function App() {
   return (
     <Router>
-      {/* Standard Bank branding container: 
-          We use a max-width to simulate a mobile app feel 
-          as per your screenshots.
-      */}
-      <div className="max-w-md mx-auto min-h-screen bg-black shadow-2xl overflow-x-hidden">
+        
         <Routes>
-          {/* Main Hub */}
-          <Route path="/" element={<Dashboard />} />
-          
-          {/* Your Assigned Pages */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/pay" element={<Payments />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/contact" element={<ContactUs />} />
-          
-          {/* Fallback to Dashboard if route not found */}
-          <Route path="*" element={<Dashboard />} />
+          <Route path="/buy" element={<Buy />} />
+          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/notification" element={<Notifications />} />
+          <Route path="/cards" element={<Cards />} />
         </Routes>
-      </div>
+
+        
     </Router>
   );
 }

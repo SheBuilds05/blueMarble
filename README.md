@@ -18,7 +18,7 @@ Observability: Real-time metrics collection and visual dashboards for system hea
 
 **Technologies**
 
-React, HTML5, CSS3
+React, Tailwind
 Node.js (Express)
 MongoDB
 

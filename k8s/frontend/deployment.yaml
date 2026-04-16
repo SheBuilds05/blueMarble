@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: bluemarble
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: yourdockerhubusername/bluemarble-frontend:latest # REPLACE ME
+        ports:
+        - containerPort: 3000
+        env:
+        - name: REACT_APP_API_URL
+          # Pointing the frontend to the backend service we created in Step 5
+          value: "http://backend-service:5000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "100m"

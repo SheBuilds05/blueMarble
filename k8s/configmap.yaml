@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bluemarble-config
+  namespace: bluemarble
+data:
+  backend-port: "5000"
+  frontend-port: "3000"
+  mongodb-database: "bluemarble"
+  mongodb-host: "mongodb-service"
