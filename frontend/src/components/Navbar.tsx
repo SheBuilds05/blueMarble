@@ -30,7 +30,7 @@ const Navbar = () => {
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { name: 'Deposit', path: '/deposit', icon: <ArrowDownCircle size={18} /> },
     { name: 'Withdraw', path: '/withdraw', icon: <ArrowUpCircle size={18} /> },
-    { name: 'Pay Bills', path: '/pay-bills', icon: <Receipt size={18} /> },
+    { name: 'Pay Bills', path: '/pay', icon: <Receipt size={18} /> },
     { name: 'History', path: '/history', icon: <HistoryIcon size={18} /> },
     { name: 'Notifications', path: '/notifications', icon: <Bell size={18} /> },
   ];

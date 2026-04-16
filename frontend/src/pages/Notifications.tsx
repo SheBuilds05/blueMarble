@@ -18,15 +18,15 @@ const Notifications = () => {
       message: 'R500.00 transferred from Main Savings to Everyday Cheque',
       type: 'transaction',
       read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), 
+      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
     },
     {
       id: '2',
-      title: 'Welcome to OpenBank',
+      title: 'Welcome to FinTech App',
       message: 'Thank you for joining us! Start managing your finances today.',
       type: 'success',
       read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
     },
     {
       id: '3',
@@ -34,7 +34,7 @@ const Notifications = () => {
       message: 'New login detected from Chrome on Windows',
       type: 'alert',
       read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     },
     {
       id: '4',
@@ -42,22 +42,30 @@ const Notifications = () => {
       message: 'Your electricity bill is due in 3 days',
       type: 'alert',
       read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
     },
   ]);
 
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
 
   const markAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
   };
 
   const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications(prevNotifications =>
+      prevNotifications.filter(notif => notif.id !== id)
+    );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif => ({ ...notif, read: true }))
+    );
   };
 
   const filteredNotifications = notifications.filter(notif => {
@@ -77,126 +85,152 @@ const Notifications = () => {
     const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
     return date.toLocaleDateString('en-ZA');
   };
 
-  const getTypeStyles = (type: string, isRead: boolean) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'transaction': return { icon: '💳', bg: isRead ? 'bg-gray-100' : 'bg-blue-100', color: 'text-blue-600' };
-      case 'alert': return { icon: '⚠️', bg: isRead ? 'bg-gray-100' : 'bg-amber-100', color: 'text-amber-600' };
-      case 'success': return { icon: '✓', bg: isRead ? 'bg-gray-100' : 'bg-emerald-100', color: 'text-emerald-600' };
-      default: return { icon: '📬', bg: 'bg-gray-100', color: 'text-gray-600' };
+      case 'transaction': return '💳';
+      case 'alert': return '⚠️';
+      case 'success': return '✓';
+      default: return '📬';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8">
+      {/* Decorative Header Line */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#052CE0] via-[#3b82f6] to-[#052CE0]"></div>
 
-      {/* Exit/Back Button */}
-      <div className="max-w-3xl mx-auto mb-6 flex items-center justify-between">
-        <button 
-          onClick={() => window.history.back()} 
-          className="group flex items-center justify-center w-10 h-10 rounded-full bg-white/60 backdrop-blur-md border border-white/40 shadow-sm hover:bg-[#052CE0] transition-all duration-300"
-        >
-          <svg className="w-5 h-5 text-[#052CE0] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        
-        {unreadCount > 0 && (
-          <button onClick={markAllAsRead} className="text-xs font-bold text-[#052CE0] hover:underline uppercase tracking-tight">
-            Mark all read
-          </button>
-        )}
-      </div>
-
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#1a2a4a] tracking-tight">Notifications</h1>
-        <p className="text-[#4a5a7a] text-sm mt-1">Updates on your activity and security</p>
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#052CE0] to-[#1e40af] shadow-lg mb-4">
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-semibold text-[#1a2a4a] tracking-tight mb-2">Notifications</h1>
+        <div className="w-12 h-px bg-[#052CE0] mx-auto mb-3"></div>
+        <p className="text-[#4a5a7a] text-sm">Stay updated with your account activity</p>
       </div>
 
+      {/* Notifications Card */}
       <div className="max-w-3xl mx-auto">
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 p-1 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200 w-fit mx-auto">
-          {['all', 'unread', 'read'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setFilter(t as any)}
-              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
-                filter === t ? 'bg-[#052CE0] text-white shadow-md' : 'text-[#4a5a7a] hover:bg-gray-100'
-              }`}
-            >
-              {t} {t === 'unread' && unreadCount > 0 && `(${unreadCount})`}
-            </button>
-          ))}
-        </div>
+        <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Header with Actions */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex justify-between items-center flex-wrap gap-4">
+              <div>
+                <h2 className="text-[#1a2a4a] text-xl font-semibold">All Notifications</h2>
+                {unreadCount > 0 && (
+                  <p className="text-[#4a5a7a] text-sm mt-1">{unreadCount} unread</p>
+                )}
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[#4a5a7a] text-sm hover:bg-gray-100 hover:text-[#1a2a4a] transition-all"
+                >
+                  Mark all as read
+                </button>
+              )}
+            </div>
 
-        {/* List Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mt-6">
+              {[
+                { id: 'all', label: 'All' },
+                { id: 'unread', label: 'Unread' },
+                { id: 'read', label: 'Read' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilter(tab.id as typeof filter)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    filter === tab.id
+                      ? 'bg-[#052CE0] text-white shadow-sm'
+                      : 'text-[#4a5a7a] hover:text-[#1a2a4a] hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.label}
+                  {tab.id === 'unread' && unreadCount > 0 && (
+                    <span className="ml-1 text-xs">({unreadCount})</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notifications List */}
           <div className="divide-y divide-gray-100">
             {filteredNotifications.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center text-2xl">Inbox</div>
-                <p className="text-[#4a5a7a] font-medium">Nothing to see here</p>
-                <p className="text-[#aaaaaa] text-xs mt-1">We'll notify you when something happens.</p>
+              <div className="text-center py-16">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-10 h-10 text-[#4a5a7a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <p className="text-[#4a5a7a] text-sm font-medium">No notifications</p>
+                <p className="text-[#aaaaaa] text-xs mt-1">When you receive notifications, they'll appear here</p>
               </div>
             ) : (
-              filteredNotifications.map((notif) => {
-                const styles = getTypeStyles(notif.type, notif.read);
-                return (
-                  <div key={notif.id} className={`p-5 transition-all group ${!notif.read ? 'bg-blue-50/40' : 'hover:bg-gray-50/80'}`}>
-                    <div className="flex gap-4">
-                      {/* Icon Container */}
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-2xl ${styles.bg} ${styles.color} flex items-center justify-center text-xl shadow-sm`}>
-                        {styles.icon}
+              filteredNotifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`p-5 transition-all ${
+                    !notif.read ? 'bg-blue-50/30' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    {/* Icon */}
+                    <div className="flex-shrink-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                        !notif.read 
+                          ? 'bg-blue-100 text-[#052CE0]' 
+                          : 'bg-gray-100 text-[#4a5a7a]'
+                      }`}>
+                        {getTypeIcon(notif.type)}
                       </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start flex-wrap gap-2">
+                        <h3 className={`text-base ${
+                          !notif.read ? 'text-[#1a2a4a] font-semibold' : 'text-[#4a5a7a] font-medium'
+                        }`}>
+                          {notif.title}
+                        </h3>
+                        <span className="text-[#aaaaaa] text-xs">
+                          {formatDate(notif.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-[#4a5a7a] text-sm mt-1">{notif.message}</p>
                       
-                      {/* Text Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
-                          <h3 className={`text-sm truncate ${!notif.read ? 'text-[#1a2a4a] font-bold' : 'text-[#4a5a7a] font-semibold'}`}>
-                            {notif.title}
-                          </h3>
-                          <span className="text-[10px] font-bold text-[#aaaaaa] whitespace-nowrap ml-2">
-                            {formatDate(notif.createdAt)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-[#4a5a7a] leading-relaxed mb-3">
-                          {notif.message}
-                        </p>
-                        
-                        {/* Interaction Buttons */}
-                        <div className="flex items-center gap-4">
-                          {!notif.read && (
-                            <button 
-                              onClick={() => markAsRead(notif.id)}
-                              className="text-[11px] font-bold text-[#052CE0] uppercase tracking-wider hover:opacity-70"
-                            >
-                              Mark Read
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => deleteNotification(notif.id)}
-                            className="text-[11px] font-bold text-red-400 uppercase tracking-wider hover:text-red-600"
+                      {/* Actions */}
+                      <div className="flex gap-4 mt-3">
+                        {!notif.read && (
+                          <button
+                            onClick={() => markAsRead(notif.id)}
+                            className="text-xs text-[#052CE0] font-medium hover:text-[#052CE0]/70 transition-colors"
                           >
-                            Remove
+                            Mark as read
                           </button>
-                        </div>
+                        )}
+                        <button
+                          onClick={() => deleteNotification(notif.id)}
+                          className="text-xs text-[#999999] hover:text-[#666666] transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
-
-                      {/* Unread Indicator Dot */}
-                      {!notif.read && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#052CE0] animate-pulse mt-1"></div>
-                      )}
                     </div>
                   </div>
-                );
-              })
+                </div>
+              ))
             )}
           </div>
         </div>
