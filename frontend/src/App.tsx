@@ -1,101 +1,64 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard'; // Added this
-import Accounts from './pages/Accounts';
-import Payments from './pages/PaymentPage'; // Capitalized for consistency
-
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Importing your specific blueMarble pages
+// Core Pages
+import Landing from './pages/Landing';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage'; // Ensure this file is RegisterPage.tsx
 import Dashboard from './pages/Dashboard';
+import Accounts from './pages/Accounts';
+import Payments from './pages/PaymentPage';
 import Settings from './pages/Settings';
-import Withdraw from './pages/Withdraw'; // Re-added the Withdraw page
-import Profile from './pages/profile';
+import Withdraw from './pages/Withdraw'; 
+import Profile from './pages/Profile';
 import ContactUs from './pages/ContactUs';
+import History from './pages/History';
+
+// Components
 import BottomNav from './components/BottomNav';
+import './index.css';
 
 /**
  * Placeholder components for remaining features.
+ * Using React.FC for TypeScript type safety.
  */
-const History = () => <div className="p-20 text-white text-center font-bold">History (Coming Soon)</div>;
-const Deposit = () => <div className="p-20 text-white text-center font-bold">Deposit (Coming Soon)</div>;
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Landing from './pages/Landing';
-import History from './pages/History';
-import './index.css';
+const Deposit: React.FC = () => (
+  <div className="p-20 text-white text-center font-bold">Deposit (Coming Soon)</div>
+);
 
-function App() {
+const App: React.FC = () => {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/accounts" element={<Accounts />} />
-        <Route path="/pay" element={<Payments />} />
-      </Routes>
-        {/* Your BlueMarble animated entrance */}
-        <Route path="/" element={<Landing />} />
-        
-        {/* Your separate History page */}
-        <Route path="/history" element={<History />} />
-      </Routes>
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
-// Importing your specific pages
-import Dashboard from './pages/Dashboard';
-import Settings from './pages/Settings';
-import BottomNav from './components/BottomNav';
-
-/**
- * Placeholder components for the rest of your team.
- * These keep your app running while they finish their files.
- */
-const History = () => <div className="p-20 text-white text-center">History (Coming Soon)</div>;
-const Deposit = () => <div className="p-20 text-white text-center">Deposit (Coming Soon)</div>;
-const Withdraw = () => <div className="p-20 text-white text-center">Cards & Withdraw (Coming Soon)</div>;
-const Profile = () => <div className="p-20 text-white text-center">User Profile (Coming Soon)</div>;
-
-function App() {
-  return (
-    <Router>
-      {/* Main wrapper with your signature blueMarble gradient */}
+      {/* Main wrapper with your blueMarble gradient */}
       <div className="relative min-h-screen w-full bg-gradient-to-br from-[#052ce0] to-[#ADE8F4] overflow-x-hidden">
         
         <Routes>
-          {/* Default Path */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          {/* Auth Routes */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           
-          {/* Core blueMarble Pages */}
+          {/* Core App Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/pay" element={<Payments />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/withdraw" element={<Withdraw />} /> {/* Withdraw is now active */}
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/contact" element={<ContactUs />} />
-          
-          {/* Collaboration Routes */}
-          <Route path="/history" element={<History />} />
-          <Route path="/deposit" element={<Deposit />} />
-          {/* Your Core Pages */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/settings" element={<Settings />} />
-          
-          {/* Team Collaboration Routes */}
-          <Route path="/history" element={<History />} />
-          <Route path="/deposit" element={<Deposit />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/deposit" element={<Deposit />} />
           
-          {/* Fallback to Dashboard */}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          {/* Fallback: Send users to landing if route doesn't exist */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         
-        {/* Your Floating Navigation */}
-        {/* Your Floating Nav Component */}
+        {/* Navigation stays visible across all pages */}
         <BottomNav />
         
       </div>
     </Router>
   );
-}
+};
 
 export default App;
