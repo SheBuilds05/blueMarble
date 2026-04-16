@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // Path matches your assets folder
-import logo from "../assets/Logo.png";
+
 import BottomNav from '../components/BottomNav';
 
 const Dashboard: React.FC = () => {
@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
       <header className="flex justify-between items-center px-6 py-8 md:px-12">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 overflow-hidden rounded-xl shadow-lg border border-white/20 bg-white">
-            <img src={logo} alt="blueMarble Logo" className="w-full h-full object-contain p-1" />
+            <img src="/Logo.png" alt="Logo" className="h-10 w-auto" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-white drop-shadow-md">
             blue<span className="font-light">Marble</span>

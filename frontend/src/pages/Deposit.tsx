@@ -252,6 +252,7 @@ const Deposit = () => {
       )}
     </div>
   );
+  
 };
 
 export default Deposit;

@@ -13,7 +13,7 @@ interface Notification {
 }
 
 const Buy = () => {
-  const [balance, setBalance] = useState(15000.00); // Default balance in ZAR
+  const [balance, setBalance] = useState(15000.00);
   const [selectedCategory, setSelectedCategory] = useState<'airtime' | 'electricity' | 'voucher'>('airtime');
   const [selectedProvider, setSelectedProvider] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
