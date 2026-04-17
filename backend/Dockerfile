@@ -21,3 +21,4 @@ EXPOSE 5000
 
 # Run app
 CMD ["node", "dist/index.js"]
+
