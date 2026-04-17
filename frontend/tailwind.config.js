@@ -21,3 +21,18 @@ export default {
   },
   plugins: [],
 }
+
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        blueMarble: {
+          primary: '#052ce0',
+          dark: '#000919',
+        }
+      }
+    }
+  }
+}
+

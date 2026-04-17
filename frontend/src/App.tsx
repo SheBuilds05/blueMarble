@@ -1,47 +1,42 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
-// Importing your specific pages
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import Accounts from './pages/Accounts';
+import Payments from './pages/PaymentPage'; 
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
-import BottomNav from './components/BottomNav';
+import Withdraw from './pages/Withdraw'; 
+import Profile from './pages/Profile';
+import ContactUs from './pages/ContactUs';
+import Landing from './pages/Landing';
+import History from './pages/History';
+import Buy from './pages/Buy';
+import Deposit from './pages/Deposit';
+import Notifications from './pages/Notifications';
+import Cards from './pages/Cards';
 
-/**
- * Placeholder components for the rest of your team.
- * These keep your app running while they finish their files.
- */
-const History = () => <div className="p-20 text-white text-center">History (Coming Soon)</div>;
-const Deposit = () => <div className="p-20 text-white text-center">Deposit (Coming Soon)</div>;
-const Withdraw = () => <div className="p-20 text-white text-center">Cards & Withdraw (Coming Soon)</div>;
-const Profile = () => <div className="p-20 text-white text-center">User Profile (Coming Soon)</div>;
 
 function App() {
   return (
     <Router>
-      {/* Main wrapper with your blueMarble gradient */}
-      <div className="relative min-h-screen w-full bg-gradient-to-br from-[#052ce0] to-[#ADE8F4] overflow-x-hidden">
         
         <Routes>
-          {/* Default Path */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-          
-          {/* Your Core Pages */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/settings" element={<Settings />} />
-          
-          {/* Team Collaboration Routes */}
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/pay" element={<Payments />} />
           <Route path="/history" element={<History />} />
-          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/profile" element={<Profile />} />
-          
-          {/* Fallback to Dashboard */}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/buy" element={<Buy />} />
+          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/notification" element={<Notifications />} />
+          <Route path="/cards" element={<Cards />} />
         </Routes>
+
         
-        {/* Your Floating Nav Component */}
-        <BottomNav />
-        
-      </div>
     </Router>
   );
 }
