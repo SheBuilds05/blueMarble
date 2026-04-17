@@ -1,10 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import Accounts from './pages/Accounts';
 import Payments from './pages/PaymentPage'; 
 import Dashboard from './pages/Dashboard';
 import Accounts from './pages/Accounts';
-import Payments from './pages/PaymentPage';
 import Settings from './pages/Settings';
 import Withdraw from './pages/Withdraw'; 
 import Profile from './pages/Profile';

@@ -1,25 +1,62 @@
-import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes';
 
-// Load environment variables
+import dotenv from 'dotenv';
+
 dotenv.config();
 
-const app = express();
-app.use(express.json());
 
-// Get variables from .env
-const mongoURI = process.env.mongodb+srv://nokulungabembe_db_user:<db_password>@nokulunga.sd4uyzj.mongodb.net/OpenBankDB?appName=nokulunga || '';
-const PORT = process.env.PORT || 5000;
+function getMongoURI(): string {
+ const uri = process.env.MONGODB_URI;
+if (!uri) {
 
-// Connect to MongoDB
-mongoose.connect(mongoURI)
-  .then(() => console.log('✅ Connected to blueMarble MongoDB'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+throw new Error('❌ MONGODB_URI is not defined in .env file');
 
-app.use('/api/auth', authRoutes);
+}
+ return uri;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+}
+
+
+async function testDatabaseConnection() {
+ try {
+
+const MONGODB_URI = getMongoURI();
+
+console.log('🔄 Attempting to connect to MongoDB...');
+
+const maskedUri = MONGODB_URI.replace(/\/\/(.*)@/, '//***:***@');
+
+console.log(`📡 Connection string: ${maskedUri}`);
+
+
+
+ await mongoose.connect(MONGODB_URI);
+
+console.log('✅ Successfully connected to MongoDB!');
+
+ if (mongoose.connection.db) {
+
+const collections = await mongoose.connection.db.listCollections().toArray();
+
+console.log(`📚 Collections: ${collections.map(c => c.name).join(', ') || 'none'}`);
+
+ }
+
+ await mongoose.disconnect();
+
+console.log('🔌 Connection closed.');
+
+ process.exit(0);
+
+ } catch (error) {
+
+console.error('❌ Failed:', error);
+
+ process.exit(1);
+
+ }
+
+}
+
+
+testDatabaseConnection();
