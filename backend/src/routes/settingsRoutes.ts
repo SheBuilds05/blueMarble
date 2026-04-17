@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // Change 'updateProfile' to 'updateUserSettings' here
-import { getUserSettings, updateUserSettings } from '../controllers/settingsController';
+import { getUserSettings, updateUserSettings } from '../controllers/settingsController.js';
 
 const router = Router();
 

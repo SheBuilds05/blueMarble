@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { getCards, toggleCardStatus } from '../controllers/cardController';
-
+import { getCards, toggleCardStatus } from '../controllers/cardController.js';
 const router = Router();
 
 // GET: http://localhost:5000/api/cards
