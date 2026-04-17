@@ -3,6 +3,8 @@ import LoginPage from './pages/LoginPage';
 import Accounts from './pages/Accounts';
 import Payments from './pages/PaymentPage'; 
 import Dashboard from './pages/Dashboard';
+import Accounts from './pages/Accounts';
+import Payments from './pages/PaymentPage';
 import Settings from './pages/Settings';
 import Withdraw from './pages/Withdraw'; 
 import Profile from './pages/Profile';
@@ -15,7 +17,7 @@ import Notifications from './pages/Notifications';
 import Cards from './pages/Cards';
 
 
-function App() {
+const App: React.FC = () => {
   return (
     <Router>
         
@@ -39,6 +41,6 @@ function App() {
         
     </Router>
   );
-}
+};
 
 export default App;
