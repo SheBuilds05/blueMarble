@@ -76,7 +76,7 @@ const Login = () => {
         </form>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Demo credentials: demo@openbank.com / 123456
+          Demo: demo@openbank.com / 123456
         </p>
       </div>
     </div>
