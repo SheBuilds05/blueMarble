@@ -27,7 +27,7 @@ const PurchaseSchema = new Schema<IPurchase>({
     email: String,
     voucherCode: String
   },
-  status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
   transactionId: { type: Schema.Types.ObjectId, ref: 'Transaction' },
   createdAt: { type: Date, default: Date.now }
 });
