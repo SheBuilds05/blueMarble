@@ -1,58 +1,53 @@
+import axios from 'axios';
+
 const API_BASE = 'http://localhost:5000/api';
 
-// Helper to get auth token
-const getToken = () => localStorage.getItem('token');
+console.log('🔌 API Base URL:', API_BASE);
 
-// Generic fetch wrapper
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-      'Authorization': `Bearer ${getToken()}`,
-    },
-  });
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+});
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Request failed');
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return response.json();
-}
+  console.log(`📡 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+  return config;
+});
 
-// Deposit funds
-export const depositFunds = (amount: number, description: string) =>
-  request('/deposit', { method: 'POST', body: JSON.stringify({ amount, description }) });
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('❌ API Error:', error.message);
+    return Promise.reject(error);
+  }
+);
 
-// Transfer between accounts
-export const transferFunds = (fromAccount: string, toAccount: string, amount: number, description: string) =>
-  request('/transfer', { method: 'POST', body: JSON.stringify({ fromAccount, toAccount, amount, description }) });
+export const loginUser = (email: string, code: string) =>
+  api.post('/auth/login', { email, code });
 
-// Buy airtime
-export const buyAirtime = (provider: string, phoneNumber: string, amount: number) =>
-  request('/buy/airtime', { method: 'POST', body: JSON.stringify({ provider, phoneNumber, amount }) });
+export const getUserProfile = () => api.get('/user/profile');
 
-// Buy electricity
-export const buyElectricity = (provider: string, meterNumber: string, amount: number) =>
-  request('/buy/electricity', { method: 'POST', body: JSON.stringify({ provider, meterNumber, amount }) });
+export const transferFunds = (from: string, to: string, amount: number, desc?: string) =>
+  api.post('/transfer', { fromAccountId: from, toAccountId: to, amount, description: desc });
 
-// Buy voucher
-export const buyVoucher = (voucherType: string, amount: number, email: string) =>
-  request('/buy/voucher', { method: 'POST', body: JSON.stringify({ voucherType, amount, email }) });
+export const buyAirtime = (provider: string, phone: string, amount: number) =>
+  api.post('/buy/airtime', { provider, phoneNumber: phone, amount });
 
-// Get notifications
-export const getNotifications = (filter: string = 'all') =>
-  request(`/notifications?filter=${filter}`);
+export const getNotifications = (filter = 'all') =>
+  api.get(`/notifications?filter=${filter}`);
 
-// Mark notification as read
 export const markNotificationRead = (id: string) =>
-  request(`/notifications/${id}/read`, { method: 'PATCH' });
+  api.patch(`/notifications/${id}/read`);
 
-// Delete notification
 export const deleteNotification = (id: string) =>
-  request(`/notifications/${id}`, { method: 'DELETE' });
+  api.delete(`/notifications/${id}`);
 
-// Mark all as read
 export const markAllNotificationsRead = () =>
-  request('/notifications/mark-all-read', { method: 'POST' });
+  api.post('/notifications/mark-all-read');
+
+export default api;
