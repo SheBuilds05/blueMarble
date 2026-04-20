@@ -1,23 +1,29 @@
 import { Router } from 'express';
 import authMiddleware from '../middleware/auth';
+import User from '../models/User';
 
 const router = Router();
 
-// Mock user data (same as above)
-const userData = {
-  id: '1',
-  name: 'Demo User',
-  email: 'demo@openbank.com',
-  balance: 5234.56,
-  accounts: [
-    { id: '1', name: 'Main Savings', type: 'savings', balance: 12500.75, accountNumber: 'SAV-****-1234' },
-    { id: '2', name: 'Everyday Cheque', type: 'cheque', balance: 3450.50, accountNumber: 'CHQ-****-5678' },
-    { id: '3', name: 'Investment Portfolio', type: 'investment', balance: 50000.00, accountNumber: 'INV-****-9012' }
-  ]
-};
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
 
-router.get('/profile', authMiddleware, (req, res) => {
-  res.json({ user: userData });
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found in Database' });
+    }
+
+    // Debug logging
+    console.log('✅ User found:', user.email);
+    console.log('📊 Accounts:', JSON.stringify(user.accounts, null, 2));
+    console.log('📊 Accounts count:', user.accounts?.length || 0);
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default router;

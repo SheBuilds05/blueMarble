@@ -29,8 +29,8 @@ const UserSchema = new Schema<IUser>({
   registerCode: { type: String, required: true },
   phone: String,
   balance: { type: Number, default: 1000 },
-  accounts: [{
-    id: String,
+  accounts: [{  // ✅ Make sure this is defined
+    id:{ type: String, required: true },
     name: String,
     type: String,
     balance: Number,
@@ -44,4 +44,4 @@ const UserSchema = new Schema<IUser>({
   createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model<IUser>('User', UserSchema);
+export default mongoose.model<IUser>('User', UserSchema, 'users');
