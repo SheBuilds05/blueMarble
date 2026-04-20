@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState } from 'react';
+import BottomNav from '../components/BottomNav';
 // 1. Transaction Modal Component (Statement Popup)
 // Now accepts dynamic transactions based on the selected account
 const TransactionModal = ({ account, onClose }: { account: any, onClose: () => void }) => {
@@ -180,28 +180,11 @@ const AccountsPage: React.FC = () => {
       )}
 
       {/* Floating Bottom Navigation */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
-        <div className="bg-white/90 backdrop-blur-xl rounded-full p-2 shadow-2xl flex justify-between items-center relative border border-white/50">
-          <NavItem label="Home" icon="🏠" />
-          <NavItem label="Account" active icon="👤" />
-          <div className="w-16"></div> 
-          <button className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#052CE0] text-white w-14 h-14 rounded-full border-4 border-[#f4f7f9] flex items-center justify-center text-2xl shadow-xl hover:scale-110 active:scale-95 transition-all">
-            +
-          </button>
-          <NavItem label="History" icon="🕒" />
-          <NavItem label="Cards" icon="💳" />
-        </div>
-      </div>
+      <BottomNav />
     </div>
   );
 };
 
-const NavItem = ({ label, icon, active = false }: any) => (
-  <button className={`flex flex-col items-center px-4 py-1 transition-all ${active ? 'text-[#052CE0]' : 'text-slate-300 hover:text-slate-400'}`}>
-    <span className="text-xl mb-0.5">{icon}</span>
-    <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
-    {active && <div className="w-1 h-1 bg-[#052CE0] rounded-full mt-1"></div>}
-  </button>
-);
+
 
 export default AccountsPage;
