@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import Payments from './pages/PaymentPage'; 
 import Dashboard from './pages/Dashboard';
 import Accounts from './pages/Accounts';
@@ -22,6 +23,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/RegisterPage" element={<RegisterPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/pay" element={<Payments />} />
