@@ -1,6 +1,19 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Globe } from 'lucide-react';
 
 function LandingPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // This timer waits for 4 seconds of animation, then moves to /auth
+    const timer = setTimeout(() => {
+      navigate('/auth');
+    }, 4000);
+
+    return () => clearTimeout(timer); // Cleanup timer if user leaves
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 font-sans flex flex-col items-center justify-center p-6 overflow-hidden">
       
@@ -28,7 +41,7 @@ function LandingPage() {
               <span className="text-blue-500 bg-clip-text text-transparent bg-gradient-to-b from-blue-300 to-blue-600">Marble</span>
             </h1>
 
-            {/* Slogan - Placed directly under the text inside the float animation */}
+            {/* Slogan */}
             <div className="mt-4 px-6 py-2 border-y border-blue-500/10 backdrop-blur-sm">
               <p className="text-xs md:text-sm font-medium tracking-[0.5em] uppercase text-blue-100/60 whitespace-nowrap">
                 "Your World, Your Wealth, Your Bank"
@@ -37,7 +50,7 @@ function LandingPage() {
           </div>
         </div>
 
-        {/* Professional Trust Bar - Kept at the bottom for balance */}
+        {/* Professional Trust Bar */}
         <div className="absolute bottom-10 flex items-center justify-center gap-8 text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] opacity-40">
           <span className="flex items-center gap-2">
             <Globe className="w-3.5 h-3.5 text-blue-500" /> 
