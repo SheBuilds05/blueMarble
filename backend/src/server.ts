@@ -1,62 +1,37 @@
+import express from 'express';
 import mongoose from 'mongoose';
-
 import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/authRoutes'; // Adjust this path to your routes file
 
 dotenv.config();
 
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-function getMongoURI(): string {
- const uri = process.env.MONGODB_URI;
-if (!uri) {
+// 1. Middleware
+app.use(cors()); // Allows frontend to connect
+app.use(express.json()); // Allows reading JSON data in requests
 
-throw new Error('❌ MONGODB_URI is not defined in .env file');
+// 2. Routes
+app.use('/api/auth', authRoutes);
 
-}
- return uri;
+// 3. Database Connection
+const MONGODB_URI = process.env.MONGODB_URI;
 
-}
-
-
-async function testDatabaseConnection() {
- try {
-
-const MONGODB_URI = getMongoURI();
-
-console.log('🔄 Attempting to connect to MongoDB...');
-
-const maskedUri = MONGODB_URI.replace(/\/\/(.*)@/, '//***:***@');
-
-console.log(`📡 Connection string: ${maskedUri}`);
-
-
-
- await mongoose.connect(MONGODB_URI);
-
-console.log('✅ Successfully connected to MongoDB!');
-
- if (mongoose.connection.db) {
-
-const collections = await mongoose.connection.db.listCollections().toArray();
-
-console.log(`📚 Collections: ${collections.map(c => c.name).join(', ') || 'none'}`);
-
- }
-
- await mongoose.disconnect();
-
-console.log('🔌 Connection closed.');
-
- process.exit(0);
-
- } catch (error) {
-
-console.error('❌ Failed:', error);
-
- process.exit(1);
-
- }
-
+if (!MONGODB_URI) {
+  throw new Error('❌ MONGODB_URI is not defined in .env file');
 }
 
-
-testDatabaseConnection();
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('✅ Successfully connected to MongoDB!');
+    
+    // 4. Start the Server ONLY after DB connects
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB Connection Failed:', error);
+  });
