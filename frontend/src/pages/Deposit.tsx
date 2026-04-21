@@ -29,12 +29,10 @@ const Deposit = () => {
     const loadAccounts = async () => {
       try {
         const response = await getUserProfile();
-        // Extract accounts and ensure they have a consistent ID string
         const rawAccounts = response.data.user?.accounts || [];
         
         const sanitizedAccounts = rawAccounts.map((acc: any) => ({
           ...acc,
-          // Handle cases where MongoDB uses _id instead of id
           id: acc.id ? String(acc.id) : String(acc._id)
         }));
 
@@ -57,7 +55,6 @@ const Deposit = () => {
     }).format(amount);
   };
 
-  // Helper selectors
   const fromAccount = accounts.find(acc => String(acc.id) === String(fromAccountId));
   const toAccount = accounts.find(acc => String(acc.id) === String(toAccountId));
   const availableToAccounts = accounts.filter(acc => String(acc.id) !== String(fromAccountId));
@@ -87,7 +84,6 @@ const Deposit = () => {
       const response = await transferFunds(fromAccountId, toAccountId, transferAmount, description);
       const result = response.data;
 
-      // Update local state with the new balances returned by the backend
       if (result.newBalances) {
         setAccounts(prev => prev.map(acc => ({
           ...acc,
@@ -103,7 +99,6 @@ const Deposit = () => {
 
       setMessage({ text: 'Transfer completed successfully!', type: 'success' });
       
-      // Reset form
       setFromAccountId('');
       setToAccountId('');
       setAmount('');
@@ -122,102 +117,118 @@ const Deposit = () => {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="animate-pulse text-blue-600 font-medium">Syncing accounts...</div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] flex items-center justify-center">
+        <div className="text-[#1a2a4a] text-lg">Loading accounts...</div>
+      </div>
+    );
+  }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Transfer Funds</h1>
-            <p className="text-slate-500">Move money between your BlueMarble accounts</p>
-          </div>
-          <button 
-            onClick={() => window.history.back()}
-            className="p-2 hover:bg-white rounded-full transition-colors"
-          >
-            <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-lg p-6 text-center max-w-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-[#1a2a4a] mb-2">Unable to Load Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button onClick={() => window.location.reload()} className="bg-[#052CE0] text-white px-6 py-2 rounded-lg">
+            Retry
           </button>
         </div>
+      </div>
+    );
+  }
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#052CE0] to-[#1e40af] shadow-lg mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-[#1a2a4a]">Transfer Funds</h1>
+          <p className="text-gray-500 mt-1">Move money between your BlueMarble accounts</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Form Section */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow p-6 space-y-4">
               {message && (
-                <div className={`mb-6 p-4 rounded-xl text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                <div className={`p-3 rounded-lg text-sm ${
+                  message.type === 'success'
+                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    : 'bg-red-100 text-red-700 border border-red-200'
+                }`}>
                   {message.text}
                 </div>
               )}
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">From Account</label>
-                  <select 
-                    value={fromAccountId} 
-                    onChange={(e) => setFromAccountId(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  >
-                    <option value="">Select source account</option>
-                    {accounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>{acc.name} — {formatCurrency(acc.balance)}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">To Account</label>
-                  <select 
-                    value={toAccountId} 
-                    onChange={(e) => setToAccountId(e.target.value)}
-                    disabled={!fromAccountId}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50"
-                  >
-                    <option value="">Select destination</option>
-                    {availableToAccounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>{acc.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Amount</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R</span>
-                    <input 
-                      type="number" 
-                      value={amount} 
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xl font-bold text-slate-900"
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  onClick={handleTransfer}
-                  disabled={isLoading || !amount || !fromAccountId || !toAccountId}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:bg-slate-300 disabled:shadow-none"
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">From Account</label>
+                <select 
+                  value={fromAccountId} 
+                  onChange={(e) => setFromAccountId(e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#052CE0] focus:border-[#052CE0] outline-none"
                 >
-                  {isLoading ? 'Processing...' : 'Transfer Now'}
-                </button>
+                  <option value="">Select source account</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name} — {formatCurrency(acc.balance)}</option>
+                  ))}
+                </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">To Account</label>
+                <select 
+                  value={toAccountId} 
+                  onChange={(e) => setToAccountId(e.target.value)}
+                  disabled={!fromAccountId}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#052CE0] focus:border-[#052CE0] outline-none disabled:opacity-50 disabled:bg-gray-100"
+                >
+                  <option value="">Select destination</option>
+                  {availableToAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R</span>
+                  <input 
+                    type="number" 
+                    value={amount} 
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg text-lg font-bold focus:ring-2 focus:ring-[#052CE0] outline-none"
+                  />
+                </div>
+              </div>
+
+              <button 
+                onClick={handleTransfer}
+                disabled={isLoading || !amount || !fromAccountId || !toAccountId}
+                className="w-full py-3 bg-[#052CE0] hover:bg-[#052CE0]/90 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
+              >
+                {isLoading ? 'Processing...' : 'Transfer Now'}
+              </button>
             </div>
           </div>
 
           {/* Account Summary Sidebar */}
           <div className="space-y-4">
-            <h3 className="font-bold text-slate-900 px-2">Account Summary</h3>
+            <h3 className="font-bold text-[#1a2a4a] px-2">Account Summary</h3>
             {accounts.map(acc => (
-              <div key={acc.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">{acc.type}</div>
-                <div className="text-sm font-medium text-slate-900">{acc.name}</div>
-                <div className="text-lg font-bold text-slate-900">{formatCurrency(acc.balance)}</div>
+              <div key={acc.id} className="bg-white rounded-xl shadow p-4 border border-gray-100">
+                <div className="text-xs font-bold text-[#052CE0] uppercase tracking-wider mb-1">{acc.type}</div>
+                <div className="text-sm font-medium text-[#1a2a4a]">{acc.name}</div>
+                <div className="text-lg font-bold text-[#1a2a4a]">{formatCurrency(acc.balance)}</div>
               </div>
             ))}
           </div>
@@ -226,25 +237,29 @@ const Deposit = () => {
 
       {/* Confirmation Overlay */}
       {showConfirmation && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Review Transfer</h3>
-            <p className="text-slate-500 text-sm mb-6">Please confirm the details below are correct.</p>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-[#1a2a4a] mb-2">Confirm Transfer</h3>
+            <p className="text-gray-500 text-sm mb-6">Please confirm the details below.</p>
             
-            <div className="space-y-3 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <div className="space-y-3 mb-6 bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Transferring</span>
-                <span className="font-bold text-slate-900">{formatCurrency(parseFloat(amount))}</span>
+                <span className="text-gray-500">Amount</span>
+                <span className="font-bold text-[#1a2a4a]">{formatCurrency(parseFloat(amount))}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">To Account</span>
-                <span className="font-bold text-blue-600">{toAccount?.name}</span>
+                <span className="text-gray-500">To</span>
+                <span className="font-bold text-[#052CE0]">{toAccount?.name}</span>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setShowConfirmation(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl">Cancel</button>
-              <button onClick={confirmTransfer} className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl">Confirm</button>
+              <button onClick={() => setShowConfirmation(false)} className="flex-1 py-2 bg-gray-100 text-gray-600 font-medium rounded-lg hover:bg-gray-200 transition-all">
+                Cancel
+              </button>
+              <button onClick={confirmTransfer} className="flex-1 py-2 bg-[#052CE0] text-white font-medium rounded-lg hover:bg-[#052CE0]/90 transition-all">
+                Confirm
+              </button>
             </div>
           </div>
         </div>
