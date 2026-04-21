@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 
 const AddBeneficiaryPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [step, setStep] = useState<'selection' | 'bank-form' | 'bank-list' | 'company-search' | 'cell-form' | 'payshap-form'>('selection');
+  // Navigation State
+  const [step, setStep] = useState<'selection' | 'bank-form' | 'bank-list' | 'cell-form' | 'payshap-form' | 'company-form'>('selection');
+  
+  // Shared Form States
+  const [loading, setLoading] = useState(false);
+  const [accountName, setAccountName] = useState('');
+  
+  // Specific Form States
   const [selectedBank, setSelectedBank] = useState('STANDARD BANK');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [cellNumber, setCellNumber] = useState('');
+  const [shapID, setShapID] = useState('');
+  const [companyName, setCompanyName] = useState('');
 
   const methods = [
     { id: 'local', title: 'A Local Bank', desc: 'Pay to a South African bank account', icon: '🏛️' },
@@ -12,24 +22,49 @@ const AddBeneficiaryPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     { id: 'payshap', title: 'PayShap', desc: 'Fast payment using a ShapID', icon: '💠' },
   ];
 
-  const saBanks = [
-    "ABSA BANK", "CAPITEC BANK", "FIRST NATIONAL BANK (FNB)", "INVESTEC BANK", "NEDBANK", "STANDARD BANK", "TYME BANK"
-  ];
+  const saBanks = ["ABSA BANK", "CAPITEC BANK", "FNB", "INVESTEC", "NEDBANK", "STANDARD BANK", "TYME BANK"];
+
+  // Universal Save Function
+  const handleSave = async (type: string, detail: string) => {
+    if (!accountName || !detail) return alert("Please fill in all fields");
+    
+    setLoading(true);
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/beneficiaries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: accountName,
+          detail: detail, // Could be Acc Num, Cell Num, or ShapID
+          type: type      // Tells the backend what kind of payment this is
+        })
+      });
+
+      if (response.ok) onClose();
+      else alert("Failed to save beneficiary.");
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-t-[3rem] sm:rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto relative">
+    <div className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 text-slate-900">
+      <div className="bg-white w-full max-w-md rounded-t-[3rem] sm:rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
         
-        {/* Navigation Header */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             {step !== 'selection' && (
-              <button onClick={() => step === 'bank-list' ? setStep('bank-form') : setStep('selection')} className="text-slate-400 text-xl">←</button>
+              <button onClick={() => setStep('selection')} className="text-slate-400 text-xl">←</button>
             )}
-            <h2 className="text-xl font-black text-slate-900 leading-tight">
-              {step === 'selection' ? "Who would you like to pay?" : 
-               step === 'company-search' ? "Company Search" : "Beneficiary Details"}
-            </h2>
+            <h2 className="text-xl font-black">{step === 'selection' ? "Who to pay?" : "Details"}</h2>
           </div>
           <button onClick={onClose} className="bg-slate-100 p-2 rounded-full text-slate-400">✕</button>
         </div>
@@ -37,138 +72,99 @@ const AddBeneficiaryPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         {/* 1. MAIN SELECTION */}
         {step === 'selection' && (
           <div className="space-y-4">
-            {methods.map((method) => (
+            {methods.map((m) => (
               <button 
-                key={method.id}
+                key={m.id}
                 onClick={() => {
-                  if (method.id === 'local') setStep('bank-form');
-                  else if (method.id === 'company') setStep('company-search');
-                  else if (method.id === 'cell') setStep('cell-form');
-                  else if (method.id === 'payshap') setStep('payshap-form');
+                  if (m.id === 'local') setStep('bank-form');
+                  if (m.id === 'cell') setStep('cell-form');
+                  if (m.id === 'payshap') setStep('payshap-form');
+                  if (m.id === 'company') setStep('company-form');
                 }}
-                className="w-full flex items-center gap-5 p-5 rounded-3xl border-2 border-slate-50 hover:bg-blue-50/50 transition-all text-left group"
+                className="w-full flex items-center gap-5 p-5 rounded-3xl border-2 border-slate-50 hover:bg-blue-50 transition-all text-left"
               >
-                <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-2xl">{method.icon}</div>
+                <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-2xl">{m.icon}</div>
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm">{method.title}</h4>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">{method.desc}</p>
+                  <h4 className="font-bold text-sm">{m.title}</h4>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">{m.desc}</p>
                 </div>
               </button>
             ))}
           </div>
         )}
 
-        {/* 2. LOCAL BANK FORM (RE-ADDED DETAILS) */}
+        {/* 2. BANK FORM */}
         {step === 'bank-form' && (
           <div className="space-y-6">
-            <div className="flex flex-col items-center mb-4">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl mb-2">👤</div>
-              <p className="text-sm font-bold text-slate-800 tracking-tight">New Beneficiary</p>
-            </div>
-            <div className="space-y-4">
-              <div className="border-b border-slate-100 pb-2">
-                <label className="text-[10px] font-bold text-blue-600 uppercase">Account holder name</label>
-                <input type="text" placeholder="Enter name" className="w-full bg-transparent p-1 outline-none font-medium" />
+            <InputField label="Account holder name" value={accountName} onChange={setAccountName} placeholder="Name" />
+            <button onClick={() => setStep('bank-list')} className="w-full border-b pb-2 flex justify-between items-center text-left">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Bank</label>
+                <p className="font-bold text-slate-800">{selectedBank}</p>
               </div>
-              <button onClick={() => setStep('bank-list')} className="w-full border-b border-slate-100 pb-2 flex justify-between items-center text-left">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Bank</label>
-                  <p className="font-bold text-slate-800">{selectedBank}</p>
-                </div>
-                <span className="text-blue-600 text-lg">〉</span>
-              </button>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="border-b border-slate-100 pb-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Branch name</label>
-                  <p className="font-bold text-slate-800 text-xs tracking-tighter">ALL BRANCHES</p>
-                </div>
-                <div className="border-b border-slate-100 pb-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Branch code</label>
-                  <p className="font-bold text-slate-800 text-xs">00051001</p>
-                </div>
-              </div>
-              <div className="border-b border-slate-100 pb-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Account number</label>
-                <input type="number" placeholder="Enter account number" className="w-full bg-transparent p-1 outline-none font-medium" />
-              </div>
-              {/* References Re-Added */}
-              <div className="border-b border-slate-100 pb-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Their reference</label>
-                <input type="text" className="w-full bg-transparent p-1 outline-none font-medium" />
-              </div>
-              <div className="border-b border-slate-100 pb-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">My reference</label>
-                <input type="text" className="w-full bg-transparent p-1 outline-none font-medium" />
-              </div>
-            </div>
-            <button className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl">REVIEW</button>
+              <span className="text-blue-600">〉</span>
+            </button>
+            <InputField label="Account number" value={accountNumber} onChange={setAccountNumber} placeholder="Number" type="number" />
+            <PrimaryButton onClick={() => handleSave('bank', accountNumber)} loading={loading} />
           </div>
         )}
 
-        {/* 3. APPROVED COMPANY SEARCH */}
-        {step === 'company-search' && (
-          <div className="space-y-8 pt-4">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-              <input type="text" placeholder="Search" className="w-full bg-slate-50 rounded-2xl py-3 pl-10 pr-4 outline-none border-2 border-transparent focus:border-blue-200 text-sm" />
-            </div>
-            <div className="flex flex-col items-center text-center space-y-4 pt-4">
-              <div className="text-4xl text-blue-600">🏢</div>
-              <h3 className="font-bold text-slate-800 text-lg">Search Business Directory</h3>
-              <p className="text-sm text-slate-500 leading-relaxed max-w-[250px]">Find the bank details for the companies, municipal services and schools.</p>
-            </div>
-          </div>
-        )}
-
-        {/* 4. CELL PHONE FORM (restored) */}
+        {/* 3. CELL PHONE FORM */}
         {step === 'cell-form' && (
-          <div className="space-y-6">
-             <div className="flex flex-col items-center mb-4">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl mb-2">👤</div>
-              <p className="font-bold text-slate-800">Who would you like to pay?</p>
-            </div>
-            <div className="space-y-4">
-               <div className="border-b border-slate-100 pb-2 flex items-center gap-2">
-                  <span className="font-bold text-slate-800">+27</span>
-                  <input type="tel" placeholder="Cell phone number" className="w-full bg-transparent outline-none font-medium text-lg" />
-               </div>
-               <div className="border-b border-slate-100 pb-2">
-                <label className="text-[10px] font-bold text-blue-600 uppercase">Beneficiary name</label>
-                <input type="text" className="w-full bg-transparent p-1 outline-none font-medium" />
-              </div>
-               <div className="border-b border-slate-100 pb-2">
-                <label className="text-[10px] font-bold text-blue-600 uppercase">Beneficiary surname</label>
-                <input type="text" className="w-full bg-transparent p-1 outline-none font-medium" />
-              </div>
-            </div>
-            <button className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl">REVIEW</button>
+          <div className="space-y-6 text-center">
+             <div className="text-4xl mb-2">📱</div>
+             <InputField label="Recipient Name" value={accountName} onChange={setAccountName} placeholder="e.g. Mom" />
+             <InputField label="Mobile Number" value={cellNumber} onChange={setCellNumber} placeholder="081 234 5678" type="tel" />
+             <PrimaryButton onClick={() => handleSave('cell', cellNumber)} loading={loading} />
           </div>
         )}
 
-        {/* 5. PAYSHAP FORM (restored) */}
+        {/* 4. PAYSHAP FORM */}
         {step === 'payshap-form' && (
-           <div className="space-y-6">
-             <div className="flex flex-col items-center mb-4">
-               <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl mb-2">💠</div>
-               <p className="font-bold text-slate-800">Who would you like to pay?</p>
+          <div className="space-y-6">
+             <div className="bg-blue-50 p-4 rounded-2xl text-[11px] text-blue-700 font-medium">
+               PayShap allows instant payments using a ShapID (Cell number or ID).
              </div>
-             <div className="space-y-4">
-               <div className="border-b border-slate-100 pb-2">
-                 <label className="text-[10px] font-bold text-blue-600 uppercase">ShapID (Proxy)</label>
-                 <input type="text" placeholder="Enter ShapID" className="w-full bg-transparent p-1 outline-none font-medium" />
-               </div>
-               <div className="border-b border-slate-100 pb-2">
-                 <label className="text-[10px] font-bold text-blue-600 uppercase">Beneficiary name</label>
-                 <input type="text" className="w-full bg-transparent p-1 outline-none font-medium" />
-               </div>
-             </div>
-             <button className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl">REVIEW</button>
-           </div>
+             <InputField label="Beneficiary Name" value={accountName} onChange={setAccountName} placeholder="Name" />
+             <InputField label="ShapID" value={shapID} onChange={setShapID} placeholder="0812345678@shap" />
+             <PrimaryButton onClick={() => handleSave('payshap', shapID)} loading={loading} />
+          </div>
         )}
 
+        {/* 5. COMPANY FORM */}
+        {step === 'company-form' && (
+          <div className="space-y-6">
+             <InputField label="Company Name" value={accountName} onChange={setAccountName} placeholder="e.g. City Power" />
+             <InputField label="Account / Reference" value={companyName} onChange={setCompanyName} placeholder="Your account number" />
+             <PrimaryButton onClick={() => handleSave('company', companyName)} loading={loading} />
+          </div>
+        )}
+
+        {/* BANK LIST SUB-STEP */}
+        {step === 'bank-list' && (
+          <div className="space-y-2">
+            {saBanks.map(bank => (
+              <button key={bank} onClick={() => { setSelectedBank(bank); setStep('bank-form'); }} className="w-full p-4 text-left font-bold border-b hover:bg-slate-50 rounded-xl">{bank}</button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+// Reusable Small Components to keep code clean
+const InputField = ({ label, value, onChange, placeholder, type = "text" }: any) => (
+  <div className="border-b border-slate-100 pb-2 text-left">
+    <label className="text-[10px] font-bold text-blue-600 uppercase">{label}</label>
+    <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-transparent p-1 outline-none font-medium" />
+  </div>
+);
+
+const PrimaryButton = ({ onClick, loading }: any) => (
+  <button onClick={onClick} disabled={loading} className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition-transform">
+    {loading ? "SAVING..." : "ADD BENEFICIARY"}
+  </button>
+);
 
 export default AddBeneficiaryPopup;
