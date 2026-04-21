@@ -4,49 +4,84 @@ import bcrypt from 'bcryptjs';
 import User from '../models/Users'; 
 import { verifyToken } from '../middleware/authMiddleware';
 import Transaction from '../models/Transaction';
+import { openAccount } from '../controllers/authController';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'erdtfygiuhjokjuhtfrdes';
 
-// --- REGISTER ROUTE ---
-router.post('/register', async (req: Request, res: Response) => {
+// --- 1. VERIFY ID BEFORE REGISTRATION ---
+router.post('/verify-id', async (req: Request, res: Response) => {
   try {
-    const { firstName, surname, email, idNumber, phone, password } = req.body;
+    const { idNumber } = req.body;
+    const existingUser = await User.findOne({ idNumber });
 
-    const existingUser = await User.findOne({ $or: [{ email }, { idNumber }] });
-    if (existingUser) {
-      return res.status(400).json({ message: "User with this Email or ID Number already exists" });
+    if (!existingUser) {
+      return res.status(404).json({ message: "ID not found. Please open an account." });
     }
 
+    if (existingUser.isRegistered) {
+      return res.status(409).json({ 
+        message: "You are already registered for mobile banking.",
+        alreadyRegistered: true 
+      });
+    }
+
+    res.json({ message: "ID Verified", firstName: existingUser.firstName });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// --- 2. REGISTER (UPDATE CLIENT TO APP USER) ---
+router.post('/register', async (req: Request, res: Response) => {
+  try {
+    const { email, idNumber, phone, password } = req.body;
+
+    // Find the client that was verified in Step 1
+    const user = await User.findOne({ idNumber });
+    
+    if (!user) {
+      return res.status(404).json({ message: "User record not found." });
+    }
+
+    if (user.isRegistered) {
+      return res.status(400).json({ message: "User is already registered." });
+    }
+
+    // Check if the email they are trying to use is already taken by someone else
+    const emailTaken = await User.findOne({ email });
+    if (emailTaken) {
+      return res.status(400).json({ message: "This email is already in use." });
+    }
+
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({
-      firstName,
-      surname,
-      email,
-      idNumber,
-      phone,
-      password: hashedPassword,
-      balance: 1500.00, 
-      beneficiaries: []
-    });
+    // Update the existing document
+    user.email = email;
+    user.phone = phone;
+    user.password = hashedPassword;
+    user.isRegistered = true; 
 
-    await newUser.save();
-    res.status(201).json({ message: "User registered successfully!" });
+    await user.save();
+    res.status(201).json({ message: "Mobile banking registration successful!" });
   } catch (err: any) {
     console.error("Registration Error:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 });
 
-// --- LOGIN ROUTE ---
+// --- 3. LOGIN ROUTE ---
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid Email" });
+    // Make sure we check if they are actually registered
+    if (!user || !user.isRegistered) {
+      return res.status(400).json({ message: "Account not found or not registered for mobile banking." });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
@@ -66,7 +101,7 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-// --- FETCH USER ACCOUNTS ---
+// --- 4. FETCH USER ACCOUNTS ---
 router.get('/accounts', verifyToken, async (req: any, res: Response) => {
   try {
     const user = await User.findById(req.user.id);
@@ -90,13 +125,12 @@ router.get('/accounts', verifyToken, async (req: any, res: Response) => {
   }
 });
 
-// --- GET BENEFICIARIES ---
+// --- 5. GET BENEFICIARIES ---
 router.get('/beneficiaries', verifyToken, async (req: any, res: Response) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
     
-    // Sort so most recently paid appear first
     const sortedBeneficiaries = user.beneficiaries.sort((a, b) => 
       new Date(b.lastPaid).getTime() - new Date(a.lastPaid).getTime()
     );
@@ -107,83 +141,76 @@ router.get('/beneficiaries', verifyToken, async (req: any, res: Response) => {
   }
 });
 
-// --- ADD BENEFICIARY (UPDATED) ---
+// --- 6. ADD BENEFICIARY ---
 router.post('/beneficiaries', verifyToken, async (req: any, res: Response) => {
   try {
-    // 1. Get name, detail, AND type from the request
     const { name, detail, type } = req.body;
-    
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // 2. Add the new beneficiary to the list
-    // Note: 'initials' will be handled automatically by our Mongoose pre-save hook
     user.beneficiaries.push({
       name,
       detail,
-      type: type || 'bank', // Default to bank if not provided
+      type: type || 'bank',
       lastPaid: new Date()
     } as any);
 
     await user.save();
     res.status(201).json(user.beneficiaries);
   } catch (err) {
-    console.error("Add Beneficiary Error:", err);
     res.status(500).json({ message: "Error adding beneficiary" });
   }
 });
 
-// --- PROCESS PAYMENT ---
+// --- 7. PROCESS PAYMENT ---
 router.post('/pay', verifyToken, async (req: any, res: Response) => {
   try {
-  const { amount, reference, beneficiaryId } = req.body;
-  const user = await User.findById(req.user.id);
+    const { amount, reference, beneficiaryId } = req.body;
+    const user = await User.findById(req.user.id);
 
-  if (!user || user.balance < amount) {
-    return res.status(400).json({ message: "Insufficient funds or user not found" });
-  }
+    if (!user || user.balance < amount) {
+      return res.status(400).json({ message: "Insufficient funds or user not found" });
+    }
 
-  // 1. Deduct balance
-  user.balance -= amount;
+    user.balance -= amount;
 
-  // 2. Find beneficiary for the name
-  const beneficiary = (user.beneficiaries as any).id(beneficiaryId);
-  if (beneficiary) {
-    beneficiary.lastPaid = new Date();
-  }
+    const beneficiary = (user.beneficiaries as any).id(beneficiaryId);
+    if (beneficiary) {
+      beneficiary.lastPaid = new Date();
+    }
 
-  // 3. CREATE THE TRANSACTION RECORD (This is the missing part!)
-  const newTransaction = new Transaction({
-    userId: user._id,
-    beneficiaryName: beneficiary ? beneficiary.name : "Unknown",
-    amount: amount,
-    reference: reference,
-    type: 'Payment'
-  });
+    const newTransaction = new Transaction({
+      userId: user._id,
+      beneficiaryName: beneficiary ? beneficiary.name : "Unknown",
+      amount: amount,
+      reference: reference,
+      type: 'Payment'
+    });
 
-  // 4. Save both
-  await user.save();
-  await newTransaction.save();
+    await user.save();
+    await newTransaction.save();
 
-  res.json({ message: "Payment Successful", newBalance: user.balance });
-} catch (err) {
-    console.error("Payment Error:", err);
+    res.json({ message: "Payment Successful", newBalance: user.balance });
+  } catch (err) {
     res.status(500).json({ message: "Payment failed on server" });
   }
 });
 
-// --- GET TRANSACTION HISTORY ---
+// --- 8. GET TRANSACTION HISTORY ---
 router.get('/transactions', verifyToken, async (req: any, res: Response) => {
   try {
-    // Find all transactions for this user, newest first
-    const transactions = await Transaction.find({ userId: req.user.id })
-      .sort({ date: -1 }); 
-    
+    const transactions = await Transaction.find({ userId: req.user.id }).sort({ date: -1 }); 
     res.json(transactions);
   } catch (err) {
     res.status(500).json({ message: "Error fetching history" });
   }
 });
 
+//--- 9. OPEN ACCOUNT (FOR NON-REGISTERED USERS) ---
+router.post('/open-account', (req, res) => {
+    console.log("Application received:", req.body);
+    // This is where your logic to save the user and generate account numbers goes!
+    res.status(200).json({ message: "Success" });
+});
 
 export default router;

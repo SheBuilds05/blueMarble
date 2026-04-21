@@ -3,9 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 // 1. Define the Interface for Beneficiaries
 export interface IBeneficiary {
   name: string;
-  // Added 'type' to distinguish between Bank, Cell, etc.
   type: 'bank' | 'cell' | 'payshap' | 'company'; 
-  detail: string; // This stores the Acc Number, Cell, or ShapID
+  detail: string; 
   initials: string;
   lastPaid: Date;
 }
@@ -20,6 +19,7 @@ export interface IUser extends Document {
   password: string;
   balance: number;
   registerCode?: string;
+  isRegistered: boolean; // Added this to the interface
   beneficiaries: IBeneficiary[]; 
   createdAt: Date;
 }
@@ -27,7 +27,6 @@ export interface IUser extends Document {
 // 3. Define the Sub-Schema for Beneficiaries
 const beneficiarySchema = new Schema({
   name: { type: String, required: true },
-  // Added type with restricted options
   type: { 
     type: String, 
     enum: ['bank', 'cell', 'payshap', 'company'], 
@@ -39,12 +38,14 @@ const beneficiarySchema = new Schema({
   lastPaid: { type: Date, default: Date.now }
 });
 
-// Automatically generate initials (e.g., "Ntsako Manganye" -> "NM")
-beneficiarySchema.pre('save', function() {
-  if (this.name) {
-    const names = this.name.trim().split(/\s+/);
-    const initials = names.map(n => n[0]).join('').toUpperCase();
-    this.initials = initials.substring(0, 2); 
+// Automatically generate initials (e.g., "Khensani M" -> "KM")
+// Using any for 'this' context in the hook to avoid TS issues with subdocuments
+beneficiarySchema.pre('save', async function() {
+  const doc = this as any;
+  if (doc.name) {
+    const names = doc.name.trim().split(/\s+/);
+    const initials = names.map((n: string) => n[0]).join('').toUpperCase();
+    doc.initials = initials.substring(0, 2); 
   }
 });
 
@@ -58,7 +59,11 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   balance: { type: Number, default: 0 },
   registerCode: { type: String },
-  
+  isRegistered: { type: Boolean, default: false },
+  accountNumber: { type: String },
+  cardNumber: { type: String },
+  expiryDate: { type: String },
+  cvv: { type: String },
   // Link the array of sub-documents
   beneficiaries: [beneficiarySchema] 
 
