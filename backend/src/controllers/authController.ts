@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import User from '../models/User';
+import User from '../models/Users';
 import bcrypt from 'bcryptjs';
 
 export const register = async (req: Request, res: Response): Promise<void> => {

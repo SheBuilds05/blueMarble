@@ -1,33 +1,52 @@
 import mongoose, { Schema, Document } from 'mongoose';
-
-const AccountSchema = new Schema({
-  type: { type: String, required: true }, // e.g., 'Savings', 'Check'
-  balance: { type: Number, default: 0 },
-  mask: { type: String }, // e.g., '**** 1234'
-});
-
-// Interface for type safety
+ 
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  registerCode: string;
+  phone?: string;
+  balance: number;
+  accounts: Array<{
+    id: string;
+    name: string;
+    type: 'savings' | 'cheque' | 'investment';
+    balance: number;
+    accountNumber: string;
+  }>;
+  preferences: {
+    emailNotifications: boolean;
+    transactionAlerts: boolean;
+    language: string;
+  };
   createdAt: Date;
-  // Profile fields (left open for later editing)
-  bio?: string;
-  phoneNumber?: string;
-  profilePic?: string;
-  accounts: any[];
 }
-
-const UserSchema: Schema = new Schema({
+ 
+const UserSchema = new Schema<IUser>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  bio: { type: String, default: "" },
-  phoneNumber: { type: String, default: "" },
-  profilePic: { type: String, default: "" },
-  accounts: [AccountSchema],
+  registerCode: { type: String, required: true },
+  phone: String,
+  balance: { type: Number, default: 1000 },
+  accounts: [{
+    _id: false, // 👈 Prevents Mongoose from looking for a sub-doc _id
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    type: { type: String, required: true },
+    balance: { type: Number, default: 0 },
+    accountNumber: { type: String }
+  }],
+  preferences: {
+    emailNotifications: { type: Boolean, default: true },
+    transactionAlerts: { type: Boolean, default: true },
+    language: { type: String, default: 'en' }
+  },
+  createdAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true,
+  strict: true // Ensures Mongoose only allows defined fields
 });
-
-export default mongoose.model<IUser>('User', UserSchema);
+ 
+// Explicitly export and map to the 'users' collection
+export default mongoose.model<IUser>('User', UserSchema, 'users');
