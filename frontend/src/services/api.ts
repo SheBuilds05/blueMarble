@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 console.log('🔌 API Base URL:', API_BASE);
 
@@ -27,17 +27,28 @@ api.interceptors.response.use(
   }
 );
 
+// ========== AUTH ==========
 export const loginUser = (email: string, code: string) =>
   api.post('/auth/login', { email, code });
 
+// ========== USER PROFILE ==========
 export const getUserProfile = () => api.get('/user/profile');
 
+// ========== TRANSFERS ==========
 export const transferFunds = (from: string, to: string, amount: number, desc?: string) =>
   api.post('/transfer', { fromAccountId: from, toAccountId: to, amount, description: desc });
 
+// ========== BUY SERVICES ==========
 export const buyAirtime = (provider: string, phone: string, amount: number) =>
   api.post('/buy/airtime', { provider, phoneNumber: phone, amount });
 
+export const buyElectricity = (provider: string, meterNumber: string, amount: number) =>
+  api.post('/buy/electricity', { provider, meterNumber, amount });
+
+export const buyVoucher = (voucherType: string, amount: number, email: string) =>
+  api.post('/buy/voucher', { voucherType, amount, email });
+
+// ========== NOTIFICATIONS ==========
 export const getNotifications = (filter = 'all') =>
   api.get(`/notifications?filter=${filter}`);
 
