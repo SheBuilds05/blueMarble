@@ -1,131 +1,176 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+
+interface Account {
+  id: string; // The custom string ID from your schema
+  type: string;
+  balance: number;
+  name: string;
+}
 
 const Withdraw: React.FC = () => {
   const navigate = useNavigate();
   const [amount, setAmount] = useState<string>('');
-  const [localBalance, setLocalBalance] = useState<number>(12450.00);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleWithdraw = () => {
+  // FETCH ACCOUNTS ON LOAD
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        setError("Session expired. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/accounts/${userId}`);
+        const data = await response.json();
+        
+        if (response.ok && Array.isArray(data)) {
+          setAccounts(data);
+          if (data.length > 0) setSelectedAccount(data[0]);
+        }
+      } catch (err) {
+        setError('Could not connect to banking server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccounts();
+  }, []);
+
+  const handleWithdraw = async () => {
+    const userId = localStorage.getItem('userId');
     const value = parseFloat(amount);
-    setSuccess(null);
+
+    if (!selectedAccount || !value || value <= 0 || !userId) {
+      setError('Please enter a valid amount and select an account.');
+      return;
+    }
+
+    setIsSubmitting(true);
     setError(null);
-    if (!value || value <= 0) {
-      setError('Please enter a valid amount.');
-      return;
+
+    try {
+      // HIT THE NEW DEDICATED ROUTE
+      const response = await fetch('http://localhost:5000/api/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          accountId: selectedAccount.id, // Passes 'savings_1' or similar
+          amount: value
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess(`R${value.toFixed(2)} withdrawn from ${selectedAccount.name}`);
+        
+        // Sync Local UI State
+        setAccounts(prev => prev.map(acc => 
+          acc.id === selectedAccount.id ? { ...acc, balance: data.newBalance } : acc
+        ));
+        setSelectedAccount(prev => prev ? { ...prev, balance: data.newBalance } : null);
+        
+        setAmount('');
+        setTimeout(() => setSuccess(null), 4000);
+      } else {
+        setError(data.error || 'Withdrawal declined.');
+      }
+    } catch (err) {
+      setError('Connection error. Try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
-    if (value > localBalance) {
-      setError('Insufficient funds.');
-      return;
-    }
-    setLocalBalance(prev => prev - value);
-    setSuccess(`R${value.toFixed(2)} withdrawn successfully.`);
-    setAmount('');
-    setTimeout(() => setSuccess(null), 3000);
   };
 
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#052ce0]">
+      <Loader2 className="w-12 h-12 text-white animate-spin" />
+    </div>
+  );
+
   return (
-    /* FIXED: Removed max-w constraints and applied w-full for full-screen edge-to-edge layout */
-    <div
-      className="min-h-screen w-full pb-32 overflow-x-hidden"
-      style={{ background: "linear-gradient(to bottom right, #052ce0, #ADE8F4)" }}
-    >
-      {/* Header - Horizontal padding applied here to align with Dashboard */}
-      <div className="flex items-center gap-4 px-6 py-8 md:px-12 mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white hover:bg-white/40 transition-all active:scale-90"
-        >
+    <div className="min-h-screen w-full pb-32" style={{ background: "linear-gradient(to bottom right, #052ce0, #ADE8F4)" }}>
+      {/* HEADER */}
+      <div className="flex items-center gap-4 px-6 py-8 max-w-4xl mx-auto">
+        <button onClick={() => navigate('/dashboard')} className="p-3 bg-white/20 rounded-full text-white hover:bg-white/40">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-md">Withdraw Funds</h1>
+        <h1 className="text-2xl font-bold text-white">Withdraw Funds</h1>
       </div>
 
-      <main className="space-y-8 px-6 md:px-12 max-w-4xl mx-auto">
-        {/* Balance Card - Matching Dashboard Style */}
-        <div className="bg-white/30 backdrop-blur-xl border border-white/40 p-10 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden w-full">
-          <p className="text-white/80 uppercase tracking-widest text-[10px] font-black mb-2">Available Balance</p>
-          <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 drop-shadow-lg">
-            R {localBalance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
-          </h2>
-          <div className="inline-block px-6 py-2 bg-white/20 rounded-full border border-white/10 backdrop-blur-sm">
-            <p className="text-[11px] text-white font-bold uppercase tracking-widest">
-              Savings Account •••• 4453
-            </p>
-          </div>
+      <main className="space-y-8 px-6 max-w-4xl mx-auto">
+        {/* ACCOUNT SELECTOR */}
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          {accounts.map((acc) => (
+            <button
+              key={acc.id}
+              onClick={() => { setSelectedAccount(acc); setError(null); }}
+              className={`min-w-[280px] p-6 rounded-[2.5rem] border transition-all text-left ${
+                selectedAccount?.id === acc.id 
+                  ? 'bg-white border-white scale-105 shadow-2xl' 
+                  : 'bg-white/10 border-white/20 text-white'
+              }`}
+            >
+              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedAccount?.id === acc.id ? 'text-[#052ce0]/60' : 'opacity-60'}`}>
+                {acc.type}
+              </p>
+              <h3 className={`text-2xl font-bold mt-1 ${selectedAccount?.id === acc.id ? 'text-[#052ce0]' : 'text-white'}`}>
+                R {acc.balance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+              </h3>
+              <p className={`text-[12px] mt-2 ${selectedAccount?.id === acc.id ? 'text-[#052ce0]/40' : 'opacity-40'}`}>
+                {acc.name}
+              </p>
+            </button>
+          ))}
         </div>
 
-        {/* Feedback Messages */}
-        {success && (
-          <div className="flex items-center gap-3 p-5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 rounded-3xl text-emerald-100 text-sm font-bold animate-in fade-in slide-in-from-top-2">
-            <CheckCircle2 size={20} />
-            {success}
-          </div>
-        )}
-        {error && (
-          <div className="flex items-center gap-3 p-5 bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-3xl text-red-100 text-sm font-bold animate-in fade-in slide-in-from-top-2">
-            <AlertCircle size={20} />
-            {error}
-          </div>
-        )}
-
-        {/* Input Section */}
-        <div className="bg-white/20 backdrop-blur-lg border border-white/30 p-10 rounded-[3rem] shadow-2xl space-y-8">
-          <div className="space-y-4">
-            <label className="text-[12px] font-black text-white uppercase tracking-[0.3em] ml-2 opacity-80">
-              Amount to Withdraw
-            </label>
-            <div className="relative group">
-              <span className="absolute left-8 top-1/2 -translate-y-1/2 text-3xl font-black text-[#052ce0]">R</span>
+        {/* INPUT CARD */}
+        <div className="bg-white/20 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 shadow-2xl space-y-6">
+          <div className="space-y-2">
+            <label className="text-[12px] font-black text-white uppercase tracking-widest ml-2">Amount to Withdraw</label>
+            <div className="relative">
+              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-[#052ce0]">R</span>
               <input
                 type="number"
                 value={amount}
-                onChange={e => { setAmount(e.target.value); setError(null); }}
-                className="w-full bg-white/40 border-2 border-white/20 rounded-[2rem] py-8 pl-16 pr-8 text-4xl font-bold text-white placeholder-white/30 outline-none focus:border-white/60 focus:bg-white/50 transition-all shadow-inner"
+                onChange={e => setAmount(e.target.value)}
+                className="w-full bg-white/40 border-2 border-white/10 rounded-[2rem] py-6 pl-12 pr-6 text-3xl font-bold text-white outline-none placeholder:text-white/40 focus:bg-white/50 transition-all"
                 placeholder="0.00"
               />
             </div>
           </div>
 
-          {/* Quick Amount Grid */}
-          <div className="grid grid-cols-3 gap-4">
-            {['100', '200', '500'].map(val => (
-              <button
-                key={val}
-                onClick={() => { setAmount(val); setError(null); }}
-                className={`py-5 rounded-2xl font-black text-base transition-all active:scale-95 border-2 shadow-md ${
-                  amount === val
-                  ? 'bg-white text-[#052ce0] border-white shadow-xl scale-105'
-                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                }`}
-              >
-                R {val}
-              </button>
-            ))}
-          </div>
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/40 text-red-100 p-4 rounded-2xl flex items-center gap-3 animate-pulse">
+              <AlertCircle size={20}/> {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-100 p-4 rounded-2xl flex items-center gap-3">
+              <CheckCircle2 size={20}/> {success}
+            </div>
+          )}
 
-          {/* Action Button */}
           <button
             onClick={handleWithdraw}
-            className="w-full bg-[#052ce0] hover:brightness-110 text-white py-6 rounded-[2rem] font-black text-xl shadow-[0_15px_30px_rgba(5,46,224,0.3)] active:scale-95 transition-all mt-4"
+            disabled={isSubmitting || !amount}
+            className="w-full bg-[#052ce0] text-white py-6 rounded-[2rem] font-black text-xl flex justify-center items-center gap-3 hover:bg-[#0424b9] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
           >
-            Confirm Withdrawal
+            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Confirm Withdrawal'}
           </button>
-        </div>
-
-        {/* Brand Slogan Footer */}
-        <div className="text-center py-10">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="h-[1px] w-12 bg-white/30" />
-            <span className="text-[14px] font-black text-white/60 uppercase tracking-[0.4em]">blueMarble</span>
-            <div className="h-[1px] w-12 bg-white/30" />
-          </div>
-          <p className="text-sm md:text-base text-white font-semibold italic tracking-wide drop-shadow-sm">
-            "Your World, Your Bank, Your Freedom."
-          </p>
         </div>
       </main>
     </div>

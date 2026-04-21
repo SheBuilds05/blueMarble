@@ -1,18 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "Node16",
-    "moduleResolution": "node16",
-    
-    /* THE FIXES */
-    "rootDir": "src",
+    "target": "ES6",
+    "module": "commonjs",
+    "rootDir": "./src",
     "outDir": "./dist",
-    
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": ["src/**/*.ts"], 
-  "exclude": ["node_modules", "dist", "src/tsconfig.json"]
+    "skipLibCheck": true
+  }
 }
