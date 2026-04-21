@@ -2,31 +2,61 @@ import { Request, Response } from 'express';
 import User from '../models/Users';
 import bcrypt from 'bcryptjs';
 
-export const register = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { name, email, password } = req.body;
+// 1. THE GENERATOR FUNCTION
+const generateBankDetails = () => {
+  const accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+  const cardNumber = "4558" + Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  const cvv = Math.floor(100 + Math.random() * 900).toString();
+  
+  const now = new Date();
+  const expiryDate = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${(now.getFullYear() + 5).toString().slice(-2)}`;
+  
+  return { accountNumber, cardNumber, expiryDate, cvv };
+};
 
-    // Check if user exists
-    let user = await User.findOne({ email });
+// 2. THE OPEN ACCOUNT CONTROLLER (This handles the form you just built)
+export const openAccount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { firstName, surname, idNumber, email, phone, address, employment, balance } = req.body;
+
+    // Check if client already exists
+    let user = await User.findOne({ idNumber });
     if (user) {
-      res.status(400).json({ message: "User already exists" });
+      res.status(400).json({ message: "A client with this ID already exists." });
       return;
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Generate the details
+    const bankDetails = generateBankDetails();
 
-    // Create user
-    user = new User({
-      name,
+    // Create the user (mapping names to your Schema)
+    const newUser = new User({
+      firstName, 
+      surname,
+      idNumber,
       email,
-      password: hashedPassword
+      phone,
+      address,
+      employment,
+      balance: balance || 0,
+      isRegistered: false, // They haven't set a password/mobile login yet
+      // Add these to your Schema if you aren't using a separate Account table yet:
+      accountNumber: bankDetails.accountNumber,
+      cardNumber: bankDetails.cardNumber,
+      expiryDate: bankDetails.expiryDate,
+      cvv: bankDetails.cvv
     });
 
-    await user.save();
-    res.status(201).json({ message: "User registered successfully" });
+    await newUser.save();
+
+    // SEND RESPONSE BACK (This fixes the 'undefined' error)
+    res.status(201).json({
+      message: "Account created successfully",
+      ...bankDetails // Spreads accountNumber, cardNumber, etc. into the JSON
+    });
+
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error(err);
+    res.status(500).json({ message: "Server error during account opening" });
   }
 };

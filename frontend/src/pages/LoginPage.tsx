@@ -4,70 +4,41 @@ import Swal from 'sweetalert2';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  
+  // 1. Create state to store what the user types
   const [email, setEmail] = useState('');
-  // Changed from password to registerCode to match backend logic
-  const [registerCode, setRegisterCode] = useState(''); 
-  const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Clear any old mock sessions before attempting a new real login
-    localStorage.removeItem('userId');
-
+    
     try {
+      // 2. Actually call your backend API
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Sending registerCode instead of password
-        body: JSON.stringify({ email, registerCode }), 
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Save the real MongoDB _id returned by the server
-        localStorage.setItem('userId', data.userId); 
-        
-        await Swal.fire({
-          icon: 'success',
-          title: 'Access Granted',
-          text: `Welcome back, ${email}`,
-          timer: 1500,
-          showConfirmButton: false,
-          background: '#052ce0',
-          color: '#ffffff'
-        });
-        
-        navigate('/withdraw'); 
+        // 3. Save the token and move to dashboard
+        localStorage.setItem('token', data.token);
+        navigate('/dashboard');
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: data.error || 'Invalid email or registration code',
-          confirmButtonColor: '#052ce0'
-        });
+        alert(data.message || "Login failed");
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Connection Error',
-        text: 'Could not reach the server. Please check your network.',
-        confirmButtonColor: '#052ce0'
-      });
-    } finally {
-      setLoading(false);
+      alert("Server is offline. Please try again later.");
     }
   };
 
-  const goToRegister = () => {
-    navigate('/RegisterPage'); 
-  };
+  const goToRegister = () => navigate('/register');
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-900 p-4">
-      <div className="bg-blue-600/40 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl w-full max-w-md flex flex-col items-center border border-blue-400/30">
+      <div className="bg-blue-600 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl w-full max-w-md flex flex-col items-center border border-blue-400/30">
         
         <div className="bg-white p-4 rounded-2xl mb-6 shadow-lg">
           <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,32 +46,31 @@ const LoginPage: React.FC = () => {
           </svg>
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-2">Secure Login</h1>
-        <p className="text-blue-100 mb-10 text-center text-sm">Enter your registered email and 6-digit code</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+        <p className="text-blue-100 mb-10 text-center text-sm">Enter your credentials to access your account</p>
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
           <div className="space-y-2">
             <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-[0.2em]">Email Address</label>
             <input 
               type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="alice@example.com"
               required
-              className="w-full p-4 bg-white/10 border border-blue-400/50 rounded-2xl text-white placeholder:text-blue-200/50 focus:ring-2 focus:ring-white outline-none transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)} // Update state
+              placeholder="name@example.com"
+              className="w-full p-4 bg-white/10 border border-blue-400/50 rounded-2xl text-white placeholder:text-blue-200 focus:ring-2 focus:ring-white outline-none transition-all"
             />
           </div>
 
           <div className="space-y-2">
             <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-[0.2em]">Registration Code</label>
             <input 
-              type="text" 
-              maxLength={6}
-              value={registerCode}
-              onChange={(e) => setRegisterCode(e.target.value)}
-              placeholder="111111"
+              type="password" 
               required
-              className="w-full p-4 bg-white/10 border border-blue-400/50 rounded-2xl text-white placeholder:text-blue-200/50 focus:ring-2 focus:ring-white outline-none transition-all"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)} // Update state
+              placeholder="••••••••"
+              className="w-full p-4 bg-white/10 border border-blue-400/50 rounded-2xl text-white placeholder:text-blue-200 focus:ring-2 focus:ring-white outline-none transition-all"
             />
           </div>
 
@@ -115,10 +85,7 @@ const LoginPage: React.FC = () => {
 
         <p className="mt-10 text-sm text-blue-100">
           Don't have an account?{" "}
-          <span 
-            onClick={goToRegister}
-            className="text-white font-bold cursor-pointer hover:underline"
-          >
+          <span onClick={goToRegister} className="text-white font-bold cursor-pointer hover:underline">
             Register Now
           </span>
         </p>

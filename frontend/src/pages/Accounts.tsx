@@ -1,14 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import BottomNav from '../components/BottomNav';
 
-// --- 1. Transaction Modal Component ---
+// --- 1. Transaction Modal Component (UPDATED TO FETCH DATA) ---
 const TransactionModal = ({ account, onClose }: { account: any, onClose: () => void }) => {
-  // We'll keep these as dummy data for now until you create your Transaction Schema
-  const transactions = [
-    { id: 1, merchant: 'Shoprite Checkers', loc: 'Newton Park', time: '12:45', amount: '-R 450.00', type: 'swipe' },
-    { id: 2, merchant: 'ATM Withdrawal', loc: 'Standard Bank JHB', time: '09:15', amount: '-R 1,000.00', type: 'atm' },
-    { id: 3, merchant: 'Interest Earned', loc: 'Internal', time: '00:00', amount: '+R 125.45', type: 'deposit' },
-  ];
+  const [realTransactions, setRealTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/auth/transactions', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRealTransactions(data);
+        }
+      } catch (err) {
+        console.error("Failed to load history", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
@@ -32,25 +49,33 @@ const TransactionModal = ({ account, onClose }: { account: any, onClose: () => v
         <div className="p-8 max-h-[60vh] overflow-y-auto bg-white">
           <h4 className="text-slate-900 font-black mb-6">Recent Transactions</h4>
           <div className="space-y-6">
-            {transactions.map((tx) => (
-              <div key={tx.id} className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">
-                    {tx.type === 'swipe' ? '🛒' : tx.type === 'atm' ? '🏧' : '💰'}
+            {loading ? (
+              <p className="text-center py-4 text-slate-400 font-bold">Fetching your history...</p>
+            ) : realTransactions.length === 0 ? (
+              <p className="text-center py-4 text-slate-400">No transactions yet.</p>
+            ) : (
+              realTransactions.map((tx) => (
+                <div key={tx._id} className="flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">
+                      {tx.type === 'Payment' ? '💸' : '💰'}
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-800 text-sm">{tx.beneficiaryName}</h5>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">
+                         {new Date(tx.date).toLocaleDateString()} • {new Date(tx.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="font-bold text-slate-800 text-sm">{tx.merchant}</h5>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">{tx.loc} • {tx.time}</p>
+                  <div className="text-right">
+                    <p className="font-black text-sm text-slate-900">
+                      - R {tx.amount.toFixed(2)}
+                    </p>
+                    <p className="text-[10px] text-green-600 font-bold uppercase">Successful</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-black text-sm ${tx.amount.includes('+') ? 'text-green-600' : 'text-slate-900'}`}>
-                    {tx.amount}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Today</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -107,7 +132,7 @@ const AccountsPage: React.FC = () => {
           </div>
         </div>
         <div className="w-10 h-10 rounded-full bg-white border-2 border-white overflow-hidden shadow-md">
-           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="profile" />
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="profile" />
         </div>
       </nav>
 
@@ -134,16 +159,6 @@ const AccountsPage: React.FC = () => {
               <p className="text-slate-500 font-bold">No active accounts found.</p>
             </div>
           )}
-        </div>
-
-        <div className="mt-8 p-6 bg-white rounded-3xl border border-gray-100 shadow-sm">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">💡</div>
-              <div>
-                <p className="text-xs font-black text-[#1a2a4a] uppercase tracking-widest">Financial Tip</p>
-                <p className="text-sm text-slate-500">Your secure connection is active. All data is encrypted.</p>
-              </div>
-           </div>
         </div>
       </main>
 

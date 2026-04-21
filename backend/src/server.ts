@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import User from './models/Users'; 
 import withdrawRoutes from './routes/withdrawals';
 import profileRoutes from './routes/profile';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/authRoutes'; // Adjust this path to your routes file
 
 dotenv.config();
 
