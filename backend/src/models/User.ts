@@ -29,12 +29,13 @@ const UserSchema = new Schema<IUser>({
   registerCode: { type: String, required: true },
   phone: String,
   balance: { type: Number, default: 1000 },
-  accounts: [{  // ✅ Make sure this is defined
-    id:{ type: String, required: true },
-    name: String,
-    type: String,
-    balance: Number,
-    accountNumber: String
+  accounts: [{
+    _id: false, // 👈 Prevents Mongoose from looking for a sub-doc _id
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    type: { type: String, required: true },
+    balance: { type: Number, default: 0 },
+    accountNumber: { type: String }
   }],
   preferences: {
     emailNotifications: { type: Boolean, default: true },
@@ -42,6 +43,10 @@ const UserSchema = new Schema<IUser>({
     language: { type: String, default: 'en' }
   },
   createdAt: { type: Date, default: Date.now }
+}, { 
+  timestamps: true,
+  strict: true // Ensures Mongoose only allows defined fields
 });
 
+// Explicitly export and map to the 'users' collection
 export default mongoose.model<IUser>('User', UserSchema, 'users');
