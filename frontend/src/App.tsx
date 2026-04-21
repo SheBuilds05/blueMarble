@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
-import History from './pages/History'; // Match this name to the tag below
+import History from './pages/History';
 import AuthPage from './pages/AuthPage'; 
+import FullStatement from './pages/FullStatement'; // 1. Add this import
 import BottomNav from './components/BottomNav';
 
-// We create a wrapper component to use the 'useLocation' hook
 function AppContent() {
   const location = useLocation();
 
@@ -14,12 +14,15 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<AuthPage />} />
-        {/* Changed from HistoryPage to History to match the import above */}
         <Route path="/history" element={<History />} />
+        
+        {/* 2. Add this route so the app knows where to go */}
+        <Route path="/full-statement" element={<FullStatement />} />
+        
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
-      {/* Logic: Only show BottomNav if the path is NOT '/' or '/auth' */}
+      {/* Logic: BottomNav will now also show on /full-statement */}
       {location.pathname !== '/' && location.pathname !== '/auth' && <BottomNav />}
     </div>
   );
