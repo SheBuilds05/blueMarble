@@ -74,9 +74,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
         Transaction.create({
           userId: user._id,
           type: 'transfer',
-          amount: transferAmount,
-          description: description || `Transfer: ${fromAccount.name} to ${toAccount.name}`,
-          status: 'completed'
+          amount: transferAmount
         }),
         Notification.create({
           userId: user._id,

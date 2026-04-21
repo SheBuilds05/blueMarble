@@ -9,16 +9,21 @@ export interface IBeneficiary {
   lastPaid: Date;
 }
 
-// 2. Define the Interface for the User
+// 2. Define the Interface for the User (merged from both versions)
 export interface IUser extends Document {
+  // From version 1
   firstName: string;
   surname: string;
-  email: string;
   idNumber: string;
-  phone: string;
+  
+  // From version 2 (added optional phone from version 2's optional definition)
+  name?: string; // Made optional as version 1 uses firstName+surname
+  phone?: string; // Merged optional from version 2
+  
+  // Common fields (both versions)
+  email: string;
   password: string;
   registerCode: string;
-  phone?: string;
   balance: number;
   accounts: Array<{
     id: string;
@@ -33,14 +38,13 @@ export interface IUser extends Document {
     language: string;
   };
   createdAt: Date;
-}
- 
-const UserSchema = new Schema<IUser>({
-  balance: number;
-  registerCode?: string;
-  isRegistered: boolean; // Added this to the interface
-  beneficiaries: IBeneficiary[]; 
-  createdAt: Date;
+  
+  // Version 1 specific fields
+  isRegistered: boolean;
+  beneficiaries: IBeneficiary[];
+  cardNumber?: string;
+  expiryDate?: string;
+  cvv?: string;
 }
 
 // 3. Define the Sub-Schema for Beneficiaries
@@ -58,7 +62,6 @@ const beneficiarySchema = new Schema({
 });
 
 // Automatically generate initials (e.g., "Khensani M" -> "KM")
-// Using any for 'this' context in the hook to avoid TS issues with subdocuments
 beneficiarySchema.pre('save', async function() {
   const doc = this as any;
   if (doc.name) {
@@ -68,19 +71,26 @@ beneficiarySchema.pre('save', async function() {
   }
 });
 
-// 4. Define the Main User Schema
+// 4. Define the Main User Schema (merged from both versions)
 const UserSchema: Schema = new Schema({
+  // From version 1
   firstName: { type: String, required: true },
   surname: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
   idNumber: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
+  
+  // From version 2 (optional field)
+  name: { type: String }, // Made optional to maintain backward compatibility
+  
+  // Common fields
+  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   registerCode: { type: String, required: true },
-  phone: String,
+  phone: { type: String }, // Merged from version 2 (optional)
+  
+  // From version 1
   balance: { type: Number, default: 1000 },
   accounts: [{
-    _id: false, // 👈 Prevents Mongoose from looking for a sub-doc _id
+    _id: false,
     id: { type: String, required: true },
     name: { type: String, required: true },
     type: { type: String, required: true },
@@ -92,25 +102,19 @@ const UserSchema: Schema = new Schema({
     transactionAlerts: { type: Boolean, default: true },
     language: { type: String, default: 'en' }
   },
-  createdAt: { type: Date, default: Date.now }
-}, {
-  timestamps: true,
-  strict: true // Ensures Mongoose only allows defined fields
-});
- 
-// Explicitly export and map to the 'users' collection
-export default mongoose.model<IUser>('User', UserSchema, 'users');
-  balance: { type: Number, default: 0 },
-  registerCode: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  
+  // Version 1 specific fields
   isRegistered: { type: Boolean, default: false },
-  accountNumber: { type: String },
   cardNumber: { type: String },
   expiryDate: { type: String },
   cvv: { type: String },
-  // Link the array of sub-documents
-  beneficiaries: [beneficiarySchema] 
-
-}, { timestamps: true });
+  beneficiaries: [beneficiarySchema]
+  
+}, { 
+  timestamps: true,
+  strict: true
+});
 
 // 5. Export the Model
-export default mongoose.model<IUser>('User', UserSchema);
+export default mongoose.model<IUser>('User', UserSchema, 'users');

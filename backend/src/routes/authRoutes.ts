@@ -2,9 +2,9 @@ import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from '../models/Users'; 
+import { openAccount } from '../controllers/authController';
 import { verifyToken } from '../middleware/authMiddleware';
 import Transaction from '../models/Transaction';
-import { openAccount } from '../controllers/authController';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'erdtfygiuhjokjuhtfrdes';
