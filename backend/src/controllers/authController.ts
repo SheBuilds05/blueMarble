@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/Users';
-// import Account from '../models/Account'; // If you created the separate table
+import bcrypt from 'bcryptjs';
 
 // 1. THE GENERATOR FUNCTION
 const generateBankDetails = () => {

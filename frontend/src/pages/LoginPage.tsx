@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-[0.2em]">Password</label>
+            <label className="block text-[10px] font-bold text-blue-200 uppercase tracking-[0.2em]">Registration Code</label>
             <input 
               type="password" 
               required
@@ -75,9 +76,10 @@ const LoginPage: React.FC = () => {
 
           <button 
             type="submit"
-            className="w-full bg-white text-blue-600 font-bold py-5 rounded-2xl shadow-xl hover:bg-blue-50 transition-all active:scale-[0.98]"
+            disabled={loading}
+            className="w-full bg-white text-blue-600 font-bold py-5 rounded-2xl shadow-xl hover:bg-blue-50 transition-all active:scale-[0.98] disabled:opacity-70"
           >
-            Sign In
+            {loading ? "Verifying..." : "Access Account"}
           </button>
         </form>
 

@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
 
   return (
     /* FIXED: Removed max-w-5xl and added w-full for full-screen edge-to-edge layout */
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#052ce0] to-[#ADE8F4] pb-44 overflow-x-hidden">
+    <div className="min-h-screen w-full bg-linear-to-br from-[#052ce0] to-[#ADE8F4] pb-44 overflow-x-hidden">
       
       {/* Header - Added padding here instead of the main wrapper */}
       <header className="flex justify-between items-center px-6 py-8 md:px-12">
