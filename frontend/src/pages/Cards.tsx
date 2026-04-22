@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Shield, Snowflake, Gauge, X, Check } from 'lucide-react';
- 
+import { Gauge, Check } from 'lucide-react';
+
 const Cards: React.FC = () => {
   const [cards, setCards] = useState<any[]>([]);
   const [selectedCard, setSelectedCard] = useState<any>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [newLimit, setNewLimit] = useState("");
- 
+
   const API_BASE = "https://supreme-space-meme-5gjwwgpq44pw37x65-5000.app.github.dev/api/cards";
- 
+
   useEffect(() => { fetchCards(); }, []);
- 
+
   const fetchCards = async () => {
     try {
       const res = await axios.get(API_BASE);
@@ -20,17 +19,7 @@ const Cards: React.FC = () => {
       if (res.data.length > 0) setSelectedCard(res.data[0]);
     } catch (err) { console.error("Database fetch failed."); }
   };
- 
-  const handleToggleFreeze = async () => {
-    if (!selectedCard) return;
-    try {
-      const res = await axios.patch(`${API_BASE}/${selectedCard._id}/status`);
-      setSelectedCard(res.data);
-      // Update local list too
-      setCards(cards.map(c => c._id === res.data._id ? res.data : c));
-    } catch (err) { alert("Failed to update status"); }
-  };
- 
+
   const handleUpdateLimit = async () => {
     try {
       const res = await axios.patch(`${API_BASE}/${selectedCard._id}/limits`, {
@@ -40,11 +29,11 @@ const Cards: React.FC = () => {
       setShowLimitModal(false);
     } catch (err) { alert("Failed to update limits"); }
   };
- 
+
   return (
     <div className="p-6 bg-[#052ce0] min-h-screen text-white font-sans">
       <h1 className="text-3xl font-black italic uppercase mb-10 tracking-tighter">My Cards</h1>
- 
+
       {/* Main Card Display */}
       <div className="mb-12 border-2 border-dashed border-white/20 rounded-[40px] p-6 flex justify-center">
         {selectedCard && (
@@ -68,30 +57,17 @@ const Cards: React.FC = () => {
           </div>
         )}
       </div>
- 
-      {/* Control Panel */}
+
+      {/* Control Panel - Only ATM Limits remains */}
       <div className="grid grid-cols-1 gap-4">
-        <ControlBtn icon={<Shield size={20}/>} label="View Card Details" onClick={() => setShowDetails(true)} />
-        <ControlBtn
-            icon={<Snowflake size={20} className={selectedCard?.status === 'Frozen' ? 'text-blue-400' : ''}/>}
-            label={selectedCard?.status === 'Frozen' ? "Unfreeze Card" : "Freeze Card"}
-            onClick={handleToggleFreeze}
+        <ControlBtn 
+          icon={<Gauge size={20}/>} 
+          label="ATM Limits" 
+          onClick={() => {setNewLimit(selectedCard?.atmLimit); setShowLimitModal(true);}} 
         />
-        <ControlBtn icon={<Gauge size={20}/>} label="ATM Limits" onClick={() => {setNewLimit(selectedCard?.atmLimit); setShowLimitModal(true);}} />
       </div>
- 
-      {/* MODALS */}
-      {showDetails && (
-        <Modal title="Security Vault" onClose={() => setShowDetails(false)}>
-           <DetailRow label="Card Number" value={selectedCard.cardNumber} isMono />
-           <div className="flex justify-between">
-              <DetailRow label="Expiry" value={selectedCard.expiry} />
-              <DetailRow label="CVV" value={selectedCard.cvv} color="text-red-500" />
-           </div>
-           <DetailRow label="Current Limit" value={`R${selectedCard.atmLimit?.toLocaleString()}`} />
-        </Modal>
-      )}
- 
+
+      {/* LIMIT MODAL */}
       {showLimitModal && (
         <Modal title="ATM Daily Limit" onClose={() => setShowLimitModal(false)}>
           <p className="text-sm opacity-60 mb-6 text-blue-900">Adjust your maximum daily withdrawal amount.</p>
@@ -112,8 +88,7 @@ const Cards: React.FC = () => {
     </div>
   );
 };
- 
-// Sub-components for cleaner code
+
 const ControlBtn = ({ icon, label, onClick }: any) => (
   <button onClick={onClick} className="w-full bg-white/10 p-6 rounded-3xl flex justify-between items-center border border-white/5 hover:bg-white/20 transition-all active:scale-95">
     <div className="flex items-center gap-4">
@@ -123,7 +98,7 @@ const ControlBtn = ({ icon, label, onClick }: any) => (
     <span className="opacity-40 text-2xl">&rsaquo;</span>
   </button>
 );
- 
+
 const Modal = ({ title, children, onClose }: any) => (
   <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-6">
     <div className="bg-white text-blue-900 w-full max-w-sm rounded-[40px] p-10 relative animate-in fade-in zoom-in duration-300">
@@ -133,13 +108,5 @@ const Modal = ({ title, children, onClose }: any) => (
     </div>
   </div>
 );
- 
-const DetailRow = ({ label, value, isMono, color }: any) => (
-  <div className="mb-6">
-    <p className="text-[10px] font-black uppercase opacity-40 mb-1">{label}</p>
-    <p className={`font-bold text-lg ${isMono ? 'font-mono tracking-widest' : ''} ${color || 'text-blue-900'}`}>{value}</p>
-  </div>
-);
- 
+
 export default Cards;
- 
