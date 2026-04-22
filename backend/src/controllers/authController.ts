@@ -16,10 +16,13 @@ const generateBankDetails = () => {
   return { accountNumber, cardNumber, expiryDate, cvv, registerCode };
 };
 
-// 2. OPEN ACCOUNT (Step 1: Admin/Initial Setup)
-// 2. OPEN ACCOUNT (Step 1)
+// --- 2. OPEN ACCOUNT (Step 1) ---
 export const openAccount = async (req: Request, res: Response): Promise<void> => {
   try {
+
+    console.log("Incoming Body:", req.body);
+    console.log("Incoming File:", req.file);
+    
     const { firstName, surname, idNumber, phone, address, employment, balance } = req.body;
 
     let user = await User.findOne({ idNumber });
@@ -31,23 +34,22 @@ export const openAccount = async (req: Request, res: Response): Promise<void> =>
     const bankDetails = generateBankDetails();
 
     const newUser = new User({
-      firstName, 
+      firstName,
       surname,
+      email: undefined,
       idNumber,
-      phone,
       address,
       employment,
       balance: balance || 0,
       isRegistered: false, 
-      password: "PENDING_REGISTRATION",
-      email: "", // Leave empty for now
+      password: await bcrypt.hash(Math.random().toString(36), 10),
+      registerCode: bankDetails.registerCode,
       
-      // Generated details
+      // ADD THESE FIELDS BELOW - They were missing in your code!
       accountNumber: bankDetails.accountNumber,
       cardNumber: bankDetails.cardNumber,
       expiryDate: bankDetails.expiryDate,
       cvv: bankDetails.cvv,
-      registerCode: bankDetails.registerCode,
       
       accounts: [{
         id: new mongoose.Types.ObjectId().toString(),
@@ -58,11 +60,22 @@ export const openAccount = async (req: Request, res: Response): Promise<void> =>
       }]
     });
 
-    await newUser.save();
-    res.status(201).json({ message: "Account created", ...bankDetails });
+    await newUser.save(); // Now it actually has data to save!
+
+    res.status(201).json({
+      message: "Account created successfully",
+      accountNumber: bankDetails.accountNumber,
+      cardNumber: bankDetails.cardNumber,
+      expiryDate: bankDetails.expiryDate,
+      cvv: bankDetails.cvv
+    });
+
   } catch (err) {
+    console.error("Account Opening Error:", err);
     res.status(500).json({ message: "Server error during account opening" });
   }
+
+  
 };
 
 // 3. VERIFY ID (Used in Registration Step 1)
