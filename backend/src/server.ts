@@ -25,6 +25,7 @@ app.use(cors({
 app.use(express.json()); // Allows reading JSON data in requests
 
 // 2. Routes
+app.get('/', (req, res) => res.status(200).send("blueMarble API is live"));
 app.use('/api/withdraw', withdrawRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
