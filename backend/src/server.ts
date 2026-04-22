@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 1. Middleware
-app.use(cors({ origin: 'http://localhost:5173' })); // Allows frontend to connect
+app.use(cors()); // Allows frontend to connect
 app.use(express.json()); // Allows reading JSON data in requests
 
 // 2. Routes
@@ -35,7 +35,7 @@ mongoose.connect(MONGODB_URI)
     
     // 4. Start the Server ONLY after DB connects
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+      console.log(`🚀 Server is running on port ${PORT}`);
     });
   })
   .catch((error) => {
