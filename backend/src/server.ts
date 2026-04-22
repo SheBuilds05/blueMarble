@@ -14,7 +14,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 1. Middleware
-app.use(cors({ origin: 'http://localhost:5173' })); // Allows frontend to connect
+app.use(cors({
+  origin: true, 
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));// Allows frontend to connect
 app.use(express.json()); // Allows reading JSON data in requests
 
 // 2. Routes
