@@ -10,7 +10,7 @@ const TransactionModal = ({ account, onClose }: { account: any, onClose: () => v
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/auth/transactions', {
+        const response = await fetch('https://bluemarble.onrender.com/api/auth/transactions', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -93,7 +93,7 @@ const AccountsPage: React.FC = () => {
     const fetchAccounts = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/auth/accounts', {
+        const response = await fetch('https://bluemarble.onrender.com/api/auth/accounts', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
