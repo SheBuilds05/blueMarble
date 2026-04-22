@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import authMiddleware from '../middleware/auth';
-import User from '../models/User';
+import authMiddleware from '../middleware/authMiddleware';
+import User from '../models/Users';
 import Transaction from '../models/Transaction';
 import Notification from '../models/Notification';
 

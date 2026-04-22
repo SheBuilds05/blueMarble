@@ -3,10 +3,11 @@ import mongoose, { Schema, Document } from 'mongoose';
 // Interface for TypeScript type-checking
 export interface ITransaction extends Document {
   userId: mongoose.Types.ObjectId;
-  beneficiaryName: string;
+  beneficiaryName?: string;
   amount: number;
-  reference: string;
+  reference?: string;
   type: string;
+  status: 'pending' | 'completed' | 'failed';
   date: Date;
 }
 
@@ -17,22 +18,32 @@ const TransactionSchema: Schema = new Schema({
     ref: 'User', 
     required: true 
   },
+
   beneficiaryName: { 
-    type: String, 
-    required: true 
+    type: String 
   },
+
   amount: { 
     type: Number, 
     required: true 
   },
+
   reference: { 
-    type: String, 
-    required: true 
+    type: String 
   },
+
   type: { 
     type: String, 
     default: 'Payment' 
   },
+
+  // ✅ ADDED STATUS (FIX FOR YOUR ERROR)
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'completed'
+  },
+
   date: { 
     type: Date, 
     default: Date.now 
