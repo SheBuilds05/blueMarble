@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { getNotifications, markNotificationRead, deleteNotification, markAllNotificationsRead } from '../services/api';
+import { getNotifications } from '../services/api';
 
 interface Notification {
   _id: string;
-  id?: string;
   title: string;
   message: string;
   type: 'transaction' | 'alert' | 'info' | 'success';
@@ -13,73 +11,24 @@ interface Notification {
 }
 
 const Notifications = () => {
-  const { addNotification: addLocalNotification } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load notifications from backend
-  const loadNotifications = async () => {
-    setLoading(true);
-    try {
-      const response = await getNotifications(filter);
-      // Handle both possible response structures
-      const data = response.data;
-      const notifs = data.notifications || data.data?.notifications || [];
-      setNotifications(notifs);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to load notifications:', err);
-      setError('Could not load notifications. Please refresh.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const response = await getNotifications();
+        setNotifications(response.data);
+      } catch (err) {
+        console.error('Failed to load notifications:', err);
+        setError('Could not load notifications');
+      } finally {
+        setLoading(false);
+      }
+    };
     loadNotifications();
-  }, [filter]);
-
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await markNotificationRead(id);
-      // Update local state
-      setNotifications(prev =>
-        prev.map(n => (n._id === id || n.id === id ? { ...n, read: true } : n))
-      );
-    } catch (err) {
-      console.error('Failed to mark as read:', err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteNotification(id);
-      setNotifications(prev => prev.filter(n => n._id !== id && n.id !== id));
-      addLocalNotification({
-        title: 'Notification Deleted',
-        message: 'The notification has been removed.',
-        type: 'info',
-      });
-    } catch (err) {
-      console.error('Failed to delete notification:', err);
-    }
-  };
-
-  const handleMarkAllRead = async () => {
-    try {
-      await markAllNotificationsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      addLocalNotification({
-        title: 'All Read',
-        message: 'All notifications marked as read.',
-        type: 'success',
-      });
-    } catch (err) {
-      console.error('Failed to mark all as read:', err);
-    }
-  };
+  }, []);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -96,7 +45,7 @@ const Notifications = () => {
     return date.toLocaleDateString('en-ZA');
   };
 
-  const getTypeIcon = (type: string) => {
+  const getIcon = (type: string) => {
     switch (type) {
       case 'transaction': return '💰';
       case 'alert': return '⚠️';
@@ -104,14 +53,6 @@ const Notifications = () => {
       default: return '📬';
     }
   };
-
-  const filteredNotifications = notifications.filter(n => {
-    if (filter === 'unread') return !n.read;
-    if (filter === 'read') return n.read;
-    return true;
-  });
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   if (loading) {
     return (
@@ -128,7 +69,7 @@ const Notifications = () => {
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
           <h2 className="text-xl font-bold text-[#1a2a4a] mb-2">Unable to Load Data</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button onClick={loadNotifications} className="bg-[#052CE0] text-white px-6 py-2 rounded-lg">
+          <button onClick={() => window.location.reload()} className="bg-[#052CE0] text-white px-6 py-2 rounded-lg">
             Retry
           </button>
         </div>
@@ -139,83 +80,35 @@ const Notifications = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-[#1a2a4a]">Notifications</h1>
-            {unreadCount > 0 && (
-              <p className="text-gray-500 text-sm">{unreadCount} unread</p>
-            )}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#052CE0] to-[#1e40af] shadow-lg mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="text-sm text-[#052CE0] hover:underline"
-            >
-              Mark all read
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 mb-6">
-          {(['all', 'unread', 'read'] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-1 rounded-full text-sm ${
-                filter === f
-                  ? 'bg-[#052CE0] text-white'
-                  : 'bg-white text-gray-600 shadow'
-              }`}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}{' '}
-              {f === 'unread' && unreadCount > 0 && `(${unreadCount})`}
-            </button>
-          ))}
+          <h1 className="text-3xl font-bold text-[#1a2a4a]">Notifications</h1>
+          <p className="text-gray-500 mt-1">Stay updated with your account activity</p>
         </div>
 
         <div className="bg-white rounded-xl shadow divide-y">
-          {filteredNotifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">📭</div>
               <p className="text-gray-400">No notifications</p>
             </div>
           ) : (
-            filteredNotifications.map(notif => {
-              const notifId = notif._id || notif.id;
-              return (
-                <div
-                  key={notifId}
-                  className={`p-4 flex gap-3 ${!notif.read ? 'bg-blue-50' : ''}`}
-                >
-                  <div className="text-2xl">{getTypeIcon(notif.type)}</div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-[#1a2a4a]">{notif.title}</h3>
-                      <span className="text-xs text-gray-400">
-                        {formatDate(notif.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm mt-1">{notif.message}</p>
-                    <div className="flex gap-3 mt-2">
-                      {!notif.read && (
-                        <button
-                          onClick={() => handleMarkAsRead(notifId!)}
-                          className="text-xs text-[#052CE0] hover:underline"
-                        >
-                          Mark read
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(notifId!)}
-                        className="text-xs text-gray-400 hover:text-red-500"
-                      >
-                        Delete
-                      </button>
-                    </div>
+            notifications.map(notif => (
+              <div key={notif._id} className="p-4 flex gap-3">
+                <div className="text-2xl">{getIcon(notif.type)}</div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-semibold text-[#1a2a4a]">{notif.title}</h3>
+                    <span className="text-xs text-gray-400">{formatDate(notif.createdAt)}</span>
                   </div>
+                  <p className="text-gray-600 text-sm mt-1">{notif.message}</p>
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
         </div>
       </div>

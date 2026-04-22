@@ -1,36 +1,55 @@
 import { Router } from 'express';
-import authMiddleware from '../middleware/auth';
+import { verifyToken } from '../middleware/authMiddleware';  // ✅ Correct path
 import Notification from '../models/Notification';
 
 const router = Router();
 
-router.get('/', authMiddleware, async (req, res) => {
-  const { filter = 'all' } = req.query;
-  let query: any = { userId: (req as any).userId };
-  if (filter === 'unread') query.read = false;
-  else if (filter === 'read') query.read = true;
-
-  const notifications = await Notification.find(query).sort({ createdAt: -1 });
-  const unreadCount = await Notification.countDocuments({ userId: (req as any).userId, read: false });
-  res.json({ notifications, total: notifications.length, unreadCount });
+// GET all notifications for the logged-in user
+router.get('/', verifyToken, async (req: any, res) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
+    res.json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ message: 'Failed to fetch notifications' });
+  }
 });
 
-router.patch('/:id/read', authMiddleware, async (req, res) => {
-  await Notification.findOneAndUpdate(
-    { _id: req.params.id, userId: (req as any).userId },
-    { read: true }
-  );
-  res.json({ success: true });
+// Mark a notification as read
+router.patch('/:id/read', verifyToken, async (req: any, res) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    await Notification.findOneAndUpdate(
+      { _id: req.params.id, userId },
+      { read: true }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update notification' });
+  }
 });
 
-router.delete('/:id', authMiddleware, async (req, res) => {
-  await Notification.findOneAndDelete({ _id: req.params.id, userId: (req as any).userId });
-  res.json({ success: true });
+// Delete a notification
+router.delete('/:id', verifyToken, async (req: any, res) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    await Notification.findOneAndDelete({ _id: req.params.id, userId });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete notification' });
+  }
 });
 
-router.post('/mark-all-read', authMiddleware, async (req, res) => {
-  await Notification.updateMany({ userId: (req as any).userId, read: false }, { read: true });
-  res.json({ success: true });
+// Mark all as read
+router.post('/mark-all-read', verifyToken, async (req: any, res) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    await Notification.updateMany({ userId, read: false }, { read: true });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to mark all as read' });
+  }
 });
 
 export default router;

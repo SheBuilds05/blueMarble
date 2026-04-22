@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes'; // Adjust this path to your routes file
 import withdrawRoutes from './routes/withdrawals';
 import profileRoutes from './routes/profile';
+import notification from './routes/notifications'
 
 
 dotenv.config();
@@ -20,7 +21,7 @@ app.use(express.json()); // Allows reading JSON data in requests
 app.use('/api/withdraw', withdrawRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
-
+app.use('/api/notifications', notification)
 // 3. Database Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 

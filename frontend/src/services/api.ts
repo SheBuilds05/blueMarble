@@ -1,13 +1,10 @@
 import axios from 'axios';
 
-const API_BASE = '/api';
-
-console.log('🔌 API Base URL:', API_BASE);
+const API_BASE = 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
 });
 
 api.interceptors.request.use((config) => {
@@ -15,42 +12,25 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  console.log(`📡 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
 });
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('❌ API Error:', error.message);
-    return Promise.reject(error);
-  }
-);
-
 // ========== AUTH ==========
-export const loginUser = (email: string, code: string) =>
-  api.post('/auth/login', { email, code });
+export const loginUser = (email: string, password: string) =>
+  api.post('/auth/login', { email, password });
+
+// ========== ACCOUNTS ==========
+export const getUserAccounts = () => api.get('/auth/accounts');
 
 // ========== USER PROFILE ==========
-export const getUserProfile = () => api.get('/user/profile');
+export const getUserProfile = () => api.get('/auth/accounts'); // Using accounts endpoint as profile
 
-// ========== TRANSFERS ==========
-export const transferFunds = (from: string, to: string, amount: number, desc?: string) =>
-  api.post('/transfer', { fromAccountId: from, toAccountId: to, amount, description: desc });
-
-// ========== BUY SERVICES ==========
-export const buyAirtime = (provider: string, phone: string, amount: number) =>
-  api.post('/buy/airtime', { provider, phoneNumber: phone, amount });
-
-export const buyElectricity = (provider: string, meterNumber: string, amount: number) =>
-  api.post('/buy/electricity', { provider, meterNumber, amount });
-
-export const buyVoucher = (voucherType: string, amount: number, email: string) =>
-  api.post('/buy/voucher', { voucherType, amount, email });
+// ========== TRANSFERS / PAYMENTS ==========
+export const transferFunds = (fromAccountId: string, toAccountId: string, amount: number, reference?: string) =>
+  api.post('/auth/pay', { amount, reference, beneficiaryId: toAccountId });
 
 // ========== NOTIFICATIONS ==========
-export const getNotifications = (filter = 'all') =>
-  api.get(`/notifications?filter=${filter}`);
+export const getNotifications = () => api.get('/notifications');
 
 export const markNotificationRead = (id: string) =>
   api.patch(`/notifications/${id}/read`);
@@ -60,5 +40,15 @@ export const deleteNotification = (id: string) =>
 
 export const markAllNotificationsRead = () =>
   api.post('/notifications/mark-all-read');
+
+// ========== PURCHASES ==========
+export const buyAirtime = (provider: string, phoneNumber: string, amount: number) =>
+  api.post('/buy/airtime', { provider, phoneNumber, amount });
+
+export const buyElectricity = (provider: string, meterNumber: string, amount: number) =>
+  api.post('/buy/electricity', { provider, meterNumber, amount });
+
+export const buyVoucher = (voucherType: string, amount: number, email: string) =>
+  api.post('/buy/voucher', { voucherType, amount, email });
 
 export default api;
