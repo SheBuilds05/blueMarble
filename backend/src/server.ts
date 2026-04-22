@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes'; // Adjust this path to your routes file
 import withdrawRoutes from './routes/withdrawals';
 import profileRoutes from './routes/profile';
+import buy from './routes/buy';
 import notification from './routes/notifications'
 
 
@@ -22,6 +23,7 @@ app.use('/api/withdraw', withdrawRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notification)
+app.use('/api/buy', buy)
 // 3. Database Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 

@@ -22,26 +22,39 @@ const Buy = () => {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
 
-  useEffect(() => {
-    const loadAccounts = async () => {
-      try {
-        const response = await getUserAccounts();
-        setAccounts(response.data);
-        if (response.data.length > 0) {
-          setSelectedAccountId(response.data[0]._id);
-        }
-      } catch (err) {
-        console.error('Failed to load accounts:', err);
-        setMessage({ text: 'Failed to load accounts. Please refresh.', type: 'error' });
-      } finally {
-        setLoadingAccounts(false);
+  // Load and Validate Accounts
+  const loadAccounts = async () => {
+    try {
+      const response = await getUserAccounts();
+      const rawData = Array.isArray(response.data) ? response.data : [];
+
+      const validatedData = rawData.map((acc: any, index: number) => ({
+        ...acc,
+        _id: String(acc._id || acc.id || `buy-acc-${index}`),
+        type: acc.type || 'Account',
+        balance: acc.balance || 'R 0.00'
+      }));
+
+      setAccounts(validatedData);
+      
+      if (validatedData.length > 0 && !selectedAccountId) {
+        setSelectedAccountId(validatedData[0]._id);
       }
-    };
+    } catch (err) {
+      console.error('Failed to load accounts:', err);
+      setMessage({ text: 'Failed to load accounts. Please refresh.', type: 'error' });
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
+  useEffect(() => {
     loadAccounts();
   }, []);
 
+  // Robust parsing to handle "R 1,200.00" or "500"
   const parseBalance = (balanceStr: string): number => {
-    return parseFloat(balanceStr.replace('R', '').trim());
+    return parseFloat(String(balanceStr).replace(/[^\d.-]/g, '')) || 0;
   };
 
   const selectedAccount = accounts.find(acc => acc._id === selectedAccountId);
@@ -50,33 +63,18 @@ const Buy = () => {
   const handlePurchase = async () => {
     const numAmount = parseFloat(amount);
     
-    if (!selectedAccountId) {
-      setMessage({ text: 'Select an account to pay from', type: 'error' });
-      return;
-    }
-    if (!provider) {
-      setMessage({ text: 'Select a provider', type: 'error' });
-      return;
-    }
-    if (category === 'airtime' && !phone) {
-      setMessage({ text: 'Enter phone number', type: 'error' });
-      return;
-    }
-    if (category === 'electricity' && !meter) {
-      setMessage({ text: 'Enter meter number', type: 'error' });
-      return;
-    }
-    if (category === 'voucher' && !email) {
-      setMessage({ text: 'Enter email address', type: 'error' });
-      return;
-    }
+    if (!selectedAccountId) return setMessage({ text: 'Select an account', type: 'error' });
+    if (!provider) return setMessage({ text: 'Select a provider', type: 'error' });
+    if (category === 'airtime' && !phone) return setMessage({ text: 'Enter phone number', type: 'error' });
+    if (category === 'electricity' && !meter) return setMessage({ text: 'Enter meter number', type: 'error' });
+    if (category === 'voucher' && !email) return setMessage({ text: 'Enter email address', type: 'error' });
+    
     if (isNaN(numAmount) || numAmount <= 0) {
-      setMessage({ text: 'Enter valid amount', type: 'error' });
-      return;
+      return setMessage({ text: 'Enter a valid amount', type: 'error' });
     }
+    
     if (numAmount > availableBalance) {
-      setMessage({ text: `Insufficient funds. Available: ${selectedAccount?.balance}`, type: 'error' });
-      return;
+      return setMessage({ text: `Insufficient funds. Available: ${selectedAccount?.balance}`, type: 'error' });
     }
 
     setIsLoading(true);
@@ -90,22 +88,36 @@ const Buy = () => {
         response = await buyVoucher(provider, numAmount, email);
       }
 
-      // Show success message
-      alert('Purchase successful!');
+      console.log('Purchase response:', response.data);
       
-      // Reset form
-      setProvider('');
+      // ✅ Update the local account balance with the new balance from response
+      if (response.data && response.data.newBalance !== undefined) {
+        setAccounts(prevAccounts => 
+          prevAccounts.map(acc => 
+            acc._id === selectedAccountId 
+              ? { ...acc, balance: `R ${response.data.newBalance.toFixed(2)}` }
+              : acc
+          )
+        );
+      }
+      
+      // ✅ Also refresh accounts from backend to ensure consistency
+      await loadAccounts();
+      
+      alert(`${category.toUpperCase()} purchase successful!`);
+      
+      // Reset Form
+      setAmount('');
       setPhone('');
       setMeter('');
       setEmail('');
-      setAmount('');
-      setMessage({ text: 'Purchase completed successfully!', type: 'success' });
       
-      setTimeout(() => setMessage(null), 3000);
+      setMessage({ text: 'Purchase completed successfully!', type: 'success' });
+      setTimeout(() => setMessage(null), 5000);
     } catch (error: any) {
       console.error('Purchase error:', error);
       setMessage({
-        text: error.response?.data?.message || 'Purchase failed. Please try again.',
+        text: error.response?.data?.message || 'Purchase failed.',
         type: 'error',
       });
     } finally {
@@ -115,170 +127,137 @@ const Buy = () => {
 
   if (loadingAccounts) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] flex items-center justify-center">
-        <div className="text-[#1a2a4a] text-lg">Loading accounts...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-slate-500">Loading accounts...</div>
       </div>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-lg p-6 text-center max-w-md">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-6 text-center max-w-md">
           <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-[#1a2a4a] mb-2">No Accounts Found</h2>
-          <p className="text-gray-600 mb-4">Please contact support to set up your account.</p>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">No Accounts Found</h2>
+          <p className="text-slate-600 mb-4">Please contact support to set up your account.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#f8fafc] p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
+        
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#052CE0] to-[#1e40af] shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-lg mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M18 13l1.5 6M9 21h6M12 15v6" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-[#1a2a4a]">Buy Services</h1>
-          <p className="text-gray-500 mt-1">Airtime, electricity &amp; vouchers</p>
+          <h1 className="text-2xl font-bold text-slate-800">Buy Services</h1>
         </div>
 
         {/* Account Selection */}
-        <div className="bg-white rounded-xl shadow p-4 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pay from</label>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
+          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Pay From</label>
           <div className="grid grid-cols-2 gap-3">
             {accounts.map(acc => (
               <button
-                key={acc._id}
+                key={`buy-pay-${acc._id}`}
                 onClick={() => setSelectedAccountId(acc._id)}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  selectedAccountId === acc._id
-                    ? 'border-[#052CE0] bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  selectedAccountId === acc._id ? 'border-blue-600 bg-blue-50' : 'border-slate-50 hover:border-slate-200'
                 }`}
               >
-                <div className="font-medium text-[#1a2a4a]">{acc.type}</div>
-                <div className="text-sm text-gray-500">{acc.balance}</div>
+                <div className="text-xs font-bold text-slate-800">{acc.type}</div>
+                <div className="text-sm font-bold text-blue-600">{acc.balance}</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex gap-2 mb-6">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 bg-slate-200/50 p-1 rounded-xl">
           {(['airtime', 'electricity', 'voucher'] as const).map(cat => (
             <button
-              key={cat}
-              onClick={() => {
-                setCategory(cat);
-                setProvider('');
-                setMessage(null);
-              }}
-              className={`flex-1 py-2 rounded-lg font-medium transition-all ${
-                category === cat
-                  ? 'bg-[#052CE0] text-white shadow-md'
-                  : 'bg-white text-gray-700 shadow hover:shadow-md'
+              key={`cat-${cat}`}
+              onClick={() => { setCategory(cat); setProvider(''); }}
+              className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                category === cat ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              {cat}
             </button>
           ))}
         </div>
 
-        {/* Purchase Form */}
-        <div className="bg-white rounded-xl shadow p-6 space-y-4">
+        {/* Main Form */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 space-y-5">
           {message && (
-            <div className={`p-3 rounded-lg text-sm ${
-              message.type === 'success'
-                ? 'bg-green-100 text-green-700 border border-green-200'
-                : 'bg-red-100 text-red-700 border border-red-200'
-            }`}>
+            <div className={`p-4 rounded-xl text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
               {message.text}
             </div>
           )}
 
-          <select
-            value={provider}
-            onChange={e => setProvider(e.target.value)}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#052CE0] outline-none"
-          >
-            <option value="">Select provider</option>
-            {category === 'airtime' && ['MTN', 'Vodacom', 'Cell C', 'Telkom'].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-            {category === 'electricity' && ['Eskom', 'City Power'].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-            {category === 'voucher' && ['Netflix', 'Spotify', 'Amazon', 'Takealot', 'Google Play', 'Steam'].map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+          <div className="space-y-4">
+            <select
+              value={provider}
+              onChange={e => setProvider(e.target.value)}
+              className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 transition-all text-sm font-medium"
+            >
+              <option value="">Select Provider</option>
+              {category === 'airtime' && ['MTN', 'Vodacom', 'Cell C', 'Telkom'].map(p => (
+                <option key={`prov-${p}`} value={p}>{p}</option>
+              ))}
+              {category === 'electricity' && ['Eskom', 'City Power'].map(p => (
+                <option key={`prov-${p}`} value={p}>{p}</option>
+              ))}
+              {category === 'voucher' && ['Netflix', 'Spotify', 'Amazon', 'Takealot', 'Google Play'].map(p => (
+                <option key={`prov-${p}`} value={p}>{p}</option>
+              ))}
+            </select>
 
-          {category === 'airtime' && (
-            <input
-              type="tel"
-              placeholder="Phone number"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#052CE0] outline-none"
-            />
-          )}
+            {category === 'airtime' && (
+              <input type="tel" placeholder="Phone Number" value={phone} onChange={e => setPhone(e.target.value)}
+                className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+            )}
 
-          {category === 'electricity' && (
-            <input
-              type="text"
-              placeholder="Meter number"
-              value={meter}
-              onChange={e => setMeter(e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#052CE0] outline-none"
-            />
-          )}
+            {category === 'electricity' && (
+              <input type="text" placeholder="Meter Number" value={meter} onChange={e => setMeter(e.target.value)}
+                className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+            )}
 
-          {category === 'voucher' && (
-            <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#052CE0] outline-none"
-            />
-          )}
+            {category === 'voucher' && (
+              <input type="email" placeholder="Recipient Email" value={email} onChange={e => setEmail(e.target.value)}
+                className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+            )}
 
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R</span>
-            <input
-              type="number"
-              placeholder="0.00"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg text-lg font-bold focus:ring-2 focus:ring-[#052CE0] outline-none"
-            />
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">R</span>
+              <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
+                className="w-full pl-10 pr-4 py-4 bg-slate-50 rounded-2xl text-xl font-bold outline-none" />
+            </div>
+
+            {/* Quick Amounts */}
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+              {[50, 100, 250, 500].map(amt => (
+                <button key={`amt-${amt}`} onClick={() => setAmount(amt.toString())}
+                  className="px-4 py-2 bg-slate-100 hover:bg-blue-600 hover:text-white rounded-full text-xs font-bold transition-all shrink-0">
+                  R{amt}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={handlePurchase}
+              disabled={isLoading || !amount || !provider}
+              className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:shadow-blue-200 transition-all disabled:opacity-50"
+            >
+              {isLoading ? 'Processing...' : `Buy ${category.toUpperCase()}`}
+            </button>
           </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {[50, 100, 200, 500, 1000].map(amt => (
-              <button
-                key={amt}
-                type="button"
-                onClick={() => setAmount(amt.toString())}
-                className="px-3 py-1.5 bg-gray-100 hover:bg-[#052CE0] hover:text-white rounded-full text-sm transition-all"
-              >
-                R{amt}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={handlePurchase}
-            disabled={isLoading}
-            className="w-full py-3 bg-[#052CE0] hover:bg-[#052CE0]/90 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
-          >
-            {isLoading ? 'Processing...' : `Buy ${category}`}
-          </button>
         </div>
       </div>
     </div>

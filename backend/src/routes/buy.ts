@@ -1,180 +1,100 @@
-import { Router } from 'express';
-import authMiddleware from '../middleware/auth';
-import User from '../models/User';
+import { Router, Response } from 'express';
+import { verifyToken } from '../middleware/authMiddleware';
+import User from '../models/Users';
 import Transaction from '../models/Transaction';
 import Notification from '../models/Notification';
 import Purchase from '../models/Purchase';
 
 const router = Router();
 
-// Buy Airtime
-router.post('/airtime', authMiddleware, async (req, res) => {
-  const { provider, phoneNumber, amount } = req.body;
+const processPurchase = async (
+  req: any, 
+  res: Response, 
+  category: 'airtime' | 'electricity' | 'voucher',
+  data: { provider: string; amount: any; identifier: string; extraDetails: any }
+) => {
+  const { provider, amount, identifier, extraDetails } = data;
+  const numAmount = parseFloat(amount);
+
   try {
-    const userId = (req as any).userId;
-    const user = await User.findById(userId);
+    const userId = req.user?.id || req.user?.userId;
     
-    // ✅ Check if user exists
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const savings = user.accounts.find(acc => acc.type === 'savings');
-    if (!savings) {
-      return res.status(400).json({ error: 'Savings account not found' });
-    }
-    if (savings.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
-    }
-
-    // Deduct amount
-    savings.balance -= amount;
-    await user.save();
-
-    // Create transaction record
-    const transaction = await Transaction.create({
-      userId: user._id,
-      type: 'purchase',
-      amount: -amount,
-      description: `${provider} airtime for ${phoneNumber}`,
-      status: 'completed'
-    });
-
-    // Create purchase record
-    await Purchase.create({
-      userId: user._id,
-      category: 'airtime',
-      provider,
-      amount,
-      details: { phoneNumber },
-      status: 'completed',
-      transactionId: transaction._id
-    });
-
-    // Create notification
-    await Notification.create({
-      userId: user._id,
-      title: 'Airtime Purchase',
-      message: `R${amount} airtime purchased for ${phoneNumber}`,
-      type: 'transaction'
-    });
-
-    res.json({
-      success: true,
-      message: `R${amount} airtime purchased for ${phoneNumber}`,
-      newBalance: savings.balance
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Buy Electricity (similar pattern)
-router.post('/electricity', authMiddleware, async (req, res) => {
-  const { provider, meterNumber, amount } = req.body;
-  try {
-    const userId = (req as any).userId;
+    // 1. Fetch the user first to check balance
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const savings = user.accounts.find(acc => acc.type === 'savings');
-    if (!savings || savings.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
+    // 2. Identify the account index
+    const accountIndex = user.accounts?.findIndex(acc => acc.type === 'savings');
+    if (accountIndex === -1 || accountIndex === undefined) {
+      return res.status(400).json({ message: 'Savings account not found' });
     }
 
-    savings.balance -= amount;
-    await user.save();
+    const currentBalance = Number(user.accounts[accountIndex].balance);
+    if (currentBalance < numAmount) {
+      return res.status(400).json({ message: 'Insufficient funds' });
+    }
 
+    const newBalance = parseFloat((currentBalance - numAmount).toFixed(2));
+
+    // 3. ATOMIC UPDATE: Use findOneAndUpdate with positional operator ($)
+    // This targets the specific account inside the array and updates only the balance
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, "accounts.type": "savings" },
+      { $set: { "accounts.$.balance": newBalance } },
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(500).json({ message: 'Failed to update balance in database' });
+    }
+
+    // 4. Create secondary records (Transaction, Purchase, Notification)
     const transaction = await Transaction.create({
-      userId: user._id,
-      type: 'purchase',
-      amount: -amount,
-      description: `${provider} electricity for meter ${meterNumber}`,
+      userId: userId,
+      beneficiaryName: provider,
+      amount: numAmount,
+      reference: `${category.toUpperCase()}: ${identifier}`,
+      type: 'Purchase',
       status: 'completed'
     });
 
     await Purchase.create({
-      userId: user._id,
-      category: 'electricity',
+      userId: userId,
+      category,
       provider,
-      amount,
-      details: { meterNumber },
+      amount: numAmount,
+      details: extraDetails,
       status: 'completed',
       transactionId: transaction._id
     });
 
     await Notification.create({
-      userId: user._id,
-      title: 'Electricity Purchase',
-      message: `R${amount} electricity for meter ${meterNumber}`,
+      userId: userId,
+      title: 'Purchase Successful',
+      message: `R${numAmount} for ${category} (${provider})`,
       type: 'transaction'
     });
 
-    res.json({
-      success: true,
-      message: `R${amount} electricity purchased for meter ${meterNumber}`,
-      newBalance: savings.balance
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Buy Voucher
-router.post('/voucher', authMiddleware, async (req, res) => {
-  const { voucherType, amount, email } = req.body;
-  try {
-    const userId = (req as any).userId;
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const savings = user.accounts.find(acc => acc.type === 'savings');
-    if (!savings || savings.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
-    }
-
-    savings.balance -= amount;
-    await user.save();
-
-    const voucherCode = `VCH-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-
-    const transaction = await Transaction.create({
-      userId: user._id,
-      type: 'purchase',
-      amount: -amount,
-      description: `${voucherType} voucher`,
-      status: 'completed'
-    });
-
-    await Purchase.create({
-      userId: user._id,
-      category: 'voucher',
-      provider: voucherType,
-      amount,
-      details: { email, voucherCode },
-      status: 'completed',
+    return res.json({ 
+      message: 'Purchase successful', 
+      newBalance: newBalance,
       transactionId: transaction._id
     });
 
-    await Notification.create({
-      userId: user._id,
-      title: 'Voucher Purchase',
-      message: `${voucherType} voucher worth R${amount} sent to ${email}`,
-      type: 'transaction'
-    });
-
-    res.json({
-      success: true,
-      message: `${voucherType} voucher sent to ${email}`,
-      newBalance: savings.balance,
-      voucherCode
-    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Final attempt error:', err);
+    return res.status(500).json({ message: 'Server error' });
   }
-});
+};
+
+// --- Standard Routes ---
+router.post('/airtime', verifyToken, (req, res) => 
+  processPurchase(req, res, 'airtime', { provider: req.body.provider, amount: req.body.amount, identifier: req.body.phone, extraDetails: { phone: req.body.phone } }));
+
+router.post('/electricity', verifyToken, (req, res) => 
+  processPurchase(req, res, 'electricity', { provider: req.body.provider, amount: req.body.amount, identifier: req.body.meter, extraDetails: { meter: req.body.meter } }));
+
+router.post('/voucher', verifyToken, (req, res) => 
+  processPurchase(req, res, 'voucher', { provider: req.body.provider, amount: req.body.amount, identifier: req.body.email, extraDetails: { email: req.body.email, voucherCode: `VCH-${Math.random().toString(36).toUpperCase().slice(2,10)}` } }));
 
 export default router;

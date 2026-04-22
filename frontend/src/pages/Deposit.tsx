@@ -24,20 +24,31 @@ const Deposit = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Load accounts from backend
-  useEffect(() => {
-    const loadAccounts = async () => {
-      try {
-        const response = await getUserAccounts();
-        setAccounts(response.data);
-      } catch (err) {
-        console.error('Failed to load accounts:', err);
-        setError('Could not load account data. Please refresh the page.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadAccounts();
-  }, []);
+useEffect(() => {
+  const loadAccounts = async () => {
+    try {
+      const response = await getUserAccounts();
+      
+      // Ensure we have an array and force a unique string ID for every item
+      const data = Array.isArray(response.data) ? response.data : [];
+      
+      const validatedData = data.map((acc: any, index: number) => ({
+        ...acc,
+        // Fallback sequence: _id -> id -> index string
+        // This guarantees React always has a unique key
+        _id: String(acc._id || acc.id || `account-key-${index}`)
+      }));
+
+      setAccounts(validatedData);
+    } catch (err) {
+      console.error('Failed to load accounts:', err);
+      setError('Could not load account data. Please refresh the page.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  loadAccounts();
+}, []);
 
   const formatCurrency = (amountStr: string) => {
     if (typeof amountStr === 'string' && amountStr.startsWith('R')) {
