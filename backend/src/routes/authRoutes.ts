@@ -12,7 +12,6 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'erdtfygiuhjokjuhtfrdes';
 
 
-router.post('/open-account', upload.single('idCopy'), openAccount);
 // --- 1. VERIFY ID BEFORE REGISTRATION ---
 router.post('/verify-id', async (req: Request, res: Response) => {
   try {
