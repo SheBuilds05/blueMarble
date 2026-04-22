@@ -46,7 +46,7 @@ const OpenAccount: React.FC = () => {
       Object.entries(formData).forEach(([key, value]) => dataToSend.append(key, value));
       dataToSend.append('idCopy', idFile);
 
-      const response = await fetch('http://localhost:5000/api/auth/open-account', {
+      const response = await fetch('https://bluemarble.onrender.com/api/auth/open-account', {
         method: 'POST',
         body: dataToSend, 
       });
