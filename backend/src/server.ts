@@ -14,7 +14,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 1. Middleware
-app.use(cors()); // Allows frontend to connect
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://blue-marble-three.vercel.app"
+  ],
+  credentials: true
+}));
 app.use(express.json()); // Allows reading JSON data in requests
 
 // 2. Routes

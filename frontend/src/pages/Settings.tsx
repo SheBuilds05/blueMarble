@@ -29,7 +29,7 @@ const Settings: React.FC = () => {
  
       try {
         // Change this URL to your actual profile endpoint
-        const response = await fetch(`http://localhost:5000/api/auth/profile`, {
+        const response = await fetch(`https://bluemarble.onrender.com/api/auth/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
        
