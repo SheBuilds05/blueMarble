@@ -82,7 +82,7 @@ const UserSchema: Schema = new Schema({
   name: { type: String }, // Made optional to maintain backward compatibility
   
   // Common fields
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: false, unique: false,default: "" },
   password: { type: String, required: true },
   registerCode: { type: String, required: true },
   phone: { type: String }, // Merged from version 2 (optional)
@@ -109,6 +109,8 @@ const UserSchema: Schema = new Schema({
   cardNumber: { type: String },
   expiryDate: { type: String },
   cvv: { type: String },
+  address: { type: String },
+  employment: { type: String },
   beneficiaries: [beneficiarySchema]
   
 }, { 

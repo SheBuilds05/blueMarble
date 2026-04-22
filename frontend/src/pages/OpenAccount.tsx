@@ -127,6 +127,7 @@ const OpenAccount: React.FC = () => {
               <input name="surname" required onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all" placeholder="Manganye" />
             </div>
 
+
             <div className="md:col-span-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-2">ID Number</label>
               <input name="idNumber" required onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all" placeholder="13-digit ID" />

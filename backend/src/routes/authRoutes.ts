@@ -5,10 +5,14 @@ import User from '../models/Users';
 import { openAccount } from '../controllers/authController';
 import { verifyToken } from '../middleware/authMiddleware';
 import Transaction from '../models/Transaction';
+import multer from 'multer';
 
+const upload = multer();
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'erdtfygiuhjokjuhtfrdes';
 
+
+router.post('/open-account', upload.single('idCopy'), openAccount);
 // --- 1. VERIFY ID BEFORE REGISTRATION ---
 router.post('/verify-id', async (req: Request, res: Response) => {
   try {

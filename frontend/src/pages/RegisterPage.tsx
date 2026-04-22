@@ -152,7 +152,7 @@ const RegisterPage: React.FC = () => {
               <input name="firstName" value={formData.firstName} placeholder="First Name" onChange={handleChange} required className="w-1/2 p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
               <input name="surname" value={formData.surname} placeholder="Surname" onChange={handleChange} required className="w-1/2 p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
             </div>
-            <input name="email" value={formData.email} type="email" placeholder="Email Address" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
+        
             <input name="phone" value={formData.phone} type="tel" placeholder="Phone Number" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
             
             <div className="relative">
