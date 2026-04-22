@@ -21,28 +21,42 @@ const Withdraw: React.FC = () => {
 
   // FETCH ACCOUNTS ON LOAD
   useEffect(() => {
-    const fetchAccounts = async () => {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        setError("Session expired. Please log in.");
-        setLoading(false);
-        return;
-      }
+const fetchAccounts = async () => {
+  const userId = localStorage.getItem('userId');
+  const token = localStorage.getItem('token');
 
-      try {
-        const response = await fetch(`http://localhost:5000/api/accounts/${userId}`);
-        const data = await response.json();
-        
-        if (response.ok && Array.isArray(data)) {
-          setAccounts(data);
-          if (data.length > 0) setSelectedAccount(data[0]);
-        }
-      } catch (err) {
-        setError('Could not connect to banking server.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (!userId || !token) {
+    setError("Session expired. Please log in.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    // 1. Updated URL to match your authRoutes.ts
+    const response = await fetch(`http://localhost:5000/api/auth/accounts`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && Array.isArray(data)) {
+      // 2. Clean the balance string (remove 'R' and spaces) into a Number
+      const cleanedAccounts = data.map((acc: any) => ({
+        ...acc,
+        balance: typeof acc.balance === 'string' 
+          ? parseFloat(acc.balance.replace(/[^\d.-]/g, '')) 
+          : acc.balance
+      }));
+
+      setAccounts(cleanedAccounts);
+      if (cleanedAccounts.length > 0) setSelectedAccount(cleanedAccounts[0]);
+    }
+  } catch (err) {
+    setError('Could not connect to banking server.');
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchAccounts();
   }, []);

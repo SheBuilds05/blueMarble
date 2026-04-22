@@ -5,7 +5,8 @@ import { ChevronLeft, X, Edit3, Save, CheckCircle2, Loader2, AlertCircle, User }
 // Updated interface: removed registerCode
 interface ProfileData {
   _id?: string;
-  name: string;
+  firstName: string;
+  surname: string;
   email: string;
   phone: string;
 }
@@ -128,13 +129,14 @@ const Profile: React.FC = () => {
           <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full border-4 border-white/30 flex items-center justify-center text-white mb-4 shadow-2xl">
             <User size={48} strokeWidth={1.5} />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{profile.name}</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">{profile.firstName} {profile.surname}</h1>
           <p className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Verified Member</p>
         </div>
         
         {/* FORM FIELDS */}
         <div className="grid grid-cols-1 gap-6">
-          <Field label="Full Name" field="name" />
+          <Field label="First Name" field="firstName" />
+          <Field label="Surname" field="surname" />
           <Field label="Email Address" field="email" disabled={true} /> 
           <Field label="Mobile Number" field="phone" />
         </div>

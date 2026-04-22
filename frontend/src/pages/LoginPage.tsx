@@ -23,25 +23,29 @@ const LoginPage: React.FC = () => {
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Success: Store token and redirect
-        localStorage.setItem('token', data.token);
-        
-        const Toast = Swal.mixin({
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 1500,
-          timerProgressBar: true,
-        });
-        
-        await Toast.fire({
-          icon: 'success',
-          title: 'Signed in successfully'
-        });
+if (response.ok) {
+  localStorage.setItem('token', data.token);
+  
+  // FIXED: Accessing 'id' inside the 'user' object returned by your backend
+  const userId = data.user?.id || data.user?._id || data.userId;
+  
+  if (userId) {
+    localStorage.setItem('userId', userId);
+    console.log("User ID saved successfully:", userId);
+  } else {
+    console.error("User ID not found in backend response:", data);
+  }
 
-        navigate('/dashboard');
-      } else {
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 1500,
+  });
+  
+  await Toast.fire({ icon: 'success', title: 'Signed in successfully' });
+  navigate('/dashboard');
+} else {
         // Handle 401 Unauthorized or other backend errors
         Swal.fire({
           icon: 'error',
