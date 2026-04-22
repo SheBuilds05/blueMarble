@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 interface Account {
-  id: string; // The custom string ID from your schema
+  id: string; // Internal state uses 'id'
+  _id?: string; // MongoDB original field
   type: string;
   balance: number;
   name: string;
@@ -20,52 +21,53 @@ const Withdraw: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // FETCH ACCOUNTS ON LOAD
-  useEffect(() => {
-const fetchAccounts = async () => {
-  const userId = localStorage.getItem('userId');
-  const token = localStorage.getItem('token');
+// Inside Withdraw.tsx
 
-  if (!userId || !token) {
-    setError("Session expired. Please log in.");
-    setLoading(false);
-    return;
-  }
+useEffect(() => {
+  const fetchAccounts = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
-  try {
-    // 1. Updated URL to match your authRoutes.ts
-    const response = await fetch(`http://localhost:5000/api/auth/accounts`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok && Array.isArray(data)) {
-      // 2. Clean the balance string (remove 'R' and spaces) into a Number
-      const cleanedAccounts = data.map((acc: any) => ({
-        ...acc,
-        balance: typeof acc.balance === 'string' 
-          ? parseFloat(acc.balance.replace(/[^\d.-]/g, '')) 
-          : acc.balance
-      }));
+    try {
+      const response = await fetch(`http://localhost:5000/api/auth/accounts`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && Array.isArray(data)) {
+        const cleanedAccounts = data.map((acc: any) => ({
+          ...acc,
+          // Force use of the string 'id' shown in your object
+          id: acc.id || acc._id, 
+          balance: typeof acc.balance === 'string' 
+            ? parseFloat(acc.balance.replace(/[^\d.-]/g, '')) 
+            : acc.balance
+        }));
 
-      setAccounts(cleanedAccounts);
-      if (cleanedAccounts.length > 0) setSelectedAccount(cleanedAccounts[0]);
+        setAccounts(cleanedAccounts);
+
+        // AUTO-SELECT for single-account users
+        if (cleanedAccounts.length > 0) {
+          setSelectedAccount(cleanedAccounts[0]);
+        }
+      }
+    } catch (err) {
+      setError('Connection failed.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError('Could not connect to banking server.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-    fetchAccounts();
-  }, []);
+  fetchAccounts();
+}, []);
 
   const handleWithdraw = async () => {
-    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     const value = parseFloat(amount);
 
-    if (!selectedAccount || !value || value <= 0 || !userId) {
+    // 2. Validation
+    if (!selectedAccount || !value || value <= 0) {
       setError('Please enter a valid amount and select an account.');
       return;
     }
@@ -74,13 +76,15 @@ const fetchAccounts = async () => {
     setError(null);
 
     try {
-      // HIT THE NEW DEDICATED ROUTE
+      // 3. Updated fetch with Authorization Header
       const response = await fetch('http://localhost:5000/api/withdraw', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Fixed 401 Unauthorized
+        },
         body: JSON.stringify({
-          userId,
-          accountId: selectedAccount.id, // Passes 'savings_1' or similar
+          accountId: selectedAccount.id, // Ensure this matches the ID string in MongoDB
           amount: value
         }),
       });
@@ -90,15 +94,17 @@ const fetchAccounts = async () => {
       if (response.ok) {
         setSuccess(`R${value.toFixed(2)} withdrawn from ${selectedAccount.name}`);
         
-        // Sync Local UI State
+        // 4. Sync Local UI State
+        const updatedBalance = data.newBalance;
         setAccounts(prev => prev.map(acc => 
-          acc.id === selectedAccount.id ? { ...acc, balance: data.newBalance } : acc
+          acc.id === selectedAccount.id ? { ...acc, balance: updatedBalance } : acc
         ));
-        setSelectedAccount(prev => prev ? { ...prev, balance: data.newBalance } : null);
+        setSelectedAccount(prev => prev ? { ...prev, balance: updatedBalance } : null);
         
         setAmount('');
         setTimeout(() => setSuccess(null), 4000);
       } else {
+        // Handle specific error messages from your withdrawals.ts
         setError(data.error || 'Withdrawal declined.');
       }
     } catch (err) {

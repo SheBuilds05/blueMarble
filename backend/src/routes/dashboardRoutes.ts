@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { getDashboardSummary } from '../controllers/dashboardController.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+ 
 const router = Router();
-
-// GET: /api/dashboard
-router.get('/', getDashboardSummary);
-
+router.get('/', verifyToken, getDashboardSummary);
+ 
 export default router;
