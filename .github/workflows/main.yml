@@ -1,63 +1,60 @@
-name: Feature Branch CI
+name: Main Branch Deployment
 
 on:
   push:
-    branches: [ "feature/*", "develop", "main" ]
-  pull_request:
-    branches: [ "develop", "main" ]
+    branches: [ "main" ]
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
 
 jobs:
-  frontend-ci:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-          
-      - name: Install Frontend Dependencies
-        run: npm install # --legacy-peer-deps
-        working-directory: ./frontend
-        
-      - name: Pipeline-Side Lint Patch
-        run: |
-          sed -i '1i /* global module */' tailwind.config.js
-          sed -i '/import tailwindcss from/d' vite.config.js
-        working-directory: ./frontend
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-     # - name: Check Syntax & Linting
-        #run: npm run lint
-        #working-directory: ./frontend
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/bluemarble-backend:latest
 
-      - name: Build Frontend Docker Image (Verify)
-        run: docker build -t openbank-frontend:test ./frontend
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/bluemarble-frontend:latest
 
-  backend-ci:
+  deploy-to-openshift:
+    needs: build-and-push # Ensures we don't deploy if the build fails
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate with OpenShift
+        uses: redhat-actions/oc-login@v1
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'backend/package*.json'
-          
-      - name: Install Backend Dependencies
-        run: npm install || npm ci
-        working-directory: ./backend
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          insecure_skip_tls_verify: true
 
-      - name: Patch Backend Dockerfile
-        # This fixes the "Missing script: build" error without touching the source code.
-        # It comments out the line 'RUN npm run build' so Docker skips it.
+      - name: Deploy Kubernetes Manifests
         run: |
-          sed -i 's/RUN npm run build/# RUN npm run build/g' Dockerfile
-        working-directory: ./backend
-
-      - name: Build Backend Docker Image (Verify)
-        run: docker build -t openbank-backend:test ./backend
+          # Apply the configurations
+          oc apply -f k8s/namespace.yaml
+          oc apply -f k8s/configmap.yaml
+          oc apply -f k8s/secrets.yaml
+          oc apply -f k8s/backend/
+          oc apply -f k8s/frontend/
+          
+          # Force the pods to refresh with the new images
+          oc rollout restart deployment/backend -n bluemarble
+          oc rollout restart deployment/frontend -n bluemarble

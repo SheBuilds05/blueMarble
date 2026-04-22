@@ -1,12 +1,21 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
 // Types
+interface Account {
+  id: string;
+  name: string;
+  type: 'savings' | 'cheque' | 'investment';
+  balance: number;
+  accountNumber: string;
+}
+
 interface User {
   id: string;
   name: string;
   email: string;
   phone?: string;
   balance: number;
+  accounts?: Account[];
   createdAt?: string;
   preferences?: {
     emailNotifications: boolean;
@@ -27,7 +36,7 @@ interface Notification {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, code: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, code: string) => Promise<boolean>;
   logout: () => void;
   updateBalance: (newBalance: number) => void;
@@ -41,35 +50,37 @@ interface AuthContextType {
   updatePreferences: (preferences: User['preferences']) => void;
 }
 
-// Create Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Provider Props
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Generate unique ID
 const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 6);
 
-// Auth Provider Component
+const DEFAULT_ACCOUNTS: Account[] = [
+  { id: "1", name: "Main Savings", type: "savings", balance: 12500.75, accountNumber: "SAV-****-1234" },
+  { id: "2", name: "Everyday Cheque", type: "cheque", balance: 3450.50, accountNumber: "CHQ-****-5678" },
+  { id: "3", name: "Investment Portfolio", type: "investment", balance: 50000.00, accountNumber: "INV-****-9012" }
+];
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Load user from localStorage on mount - THIS IS CRITICAL
   useEffect(() => {
     const storedUser = localStorage.getItem('bluemarble_user');
     const storedNotifications = localStorage.getItem('bluemarble_notifications');
     
-    console.log('Loading from localStorage:', storedUser); // Debug log
-    
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        if (!parsedUser.accounts || parsedUser.accounts.length === 0) {
+          parsedUser.accounts = DEFAULT_ACCOUNTS;
+        }
         setUser(parsedUser);
-        console.log('User loaded:', parsedUser); // Debug log
+        console.log('✅ User loaded from localStorage:', parsedUser.email);
       } catch (e) {
         console.error('Failed to parse user:', e);
       }
@@ -84,54 +95,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Save user to localStorage whenever it changes
   useEffect(() => {
     if (user) {
-      console.log('Saving user to localStorage:', user); // Debug log
       localStorage.setItem('bluemarble_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('bluemarble_user');
     }
   }, [user]);
 
-  // Save notifications to localStorage
   useEffect(() => {
     localStorage.setItem('bluemarble_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
-  // Login function
-  const login = async (email: string, code: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Demo user - accept demo@openbank.com with code 123456
-        if (email === 'demo@openbank.com' && code === '123456') {
-          const demoUser: User = {
-            id: '1',
-            name: 'Demo User',
-            email: 'demo@openbank.com',
-            phone: '+1 234 567 8900',
-            balance: 5234.56,
-            createdAt: '2024-01-15',
-            preferences: {
-              emailNotifications: true,
-              transactionAlerts: true,
-              language: 'en',
-            },
-          };
-          setUser(demoUser);
-          setLoading(false);
-          resolve(true);
-        } else {
-          setLoading(false);
-          resolve(false);
-        }
-      }, 500);
-    });
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        
+        const userWithAccounts: User = {
+          id: data.user?.id || data.userId,
+          name: data.user?.firstName || data.user?.name || email.split('@')[0],
+          email: email,
+          balance: data.user?.balance || 1000,
+          accounts: data.user?.accounts || DEFAULT_ACCOUNTS,
+          phone: data.user?.phone,
+          createdAt: new Date().toISOString(),
+          preferences: {
+            emailNotifications: true,
+            transactionAlerts: true,
+            language: 'en'
+          }
+        };
+        
+        localStorage.setItem('bluemarble_user', JSON.stringify(userWithAccounts));
+        setUser(userWithAccounts);
+        console.log('✅ Login successful, user saved with accounts');
+        setLoading(false);
+        return true;
+      }
+      
+      setLoading(false);
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoading(false);
+      return false;
+    }
   };
 
-  // Register function
   const register = async (name: string, email: string, code: string): Promise<boolean> => {
     setLoading(true);
     
@@ -142,6 +163,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name,
           email,
           balance: 1000.00,
+          accounts: [
+            { id: "1", name: "Main Savings", type: "savings", balance: 1000.00, accountNumber: "SAV-****-NEW1" },
+            { id: "2", name: "Everyday Cheque", type: "cheque", balance: 0, accountNumber: "CHQ-****-NEW2" }
+          ],
           createdAt: new Date().toISOString().slice(0, 10),
           preferences: {
             emailNotifications: true,
@@ -157,13 +182,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
-  // Logout
   const logout = () => {
     setUser(null);
     localStorage.removeItem('bluemarble_user');
+    localStorage.removeItem('token');
   };
 
-  // Update balance
   const updateBalance = (newBalance: number) => {
     if (user) {
       const updatedUser = { ...user, balance: newBalance };
@@ -171,7 +195,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Update user profile
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
@@ -179,7 +202,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Add notification
   const addNotification = (notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) => {
     const newNotification: Notification = {
       ...notification,
@@ -190,26 +212,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setNotifications(prev => [newNotification, ...prev]);
   };
 
-  // Mark as read
   const markAsRead = (id: string) => {
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
-  // Delete notification
   const deleteNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  // Mark all as read
   const markAllAsRead = () => {
     setNotifications(prev =>
       prev.map(n => ({ ...n, read: true }))
     );
   };
 
-  // Change password
   const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -218,7 +236,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
-  // Update preferences
   const updatePreferences = (preferences: User['preferences']) => {
     if (user) {
       const updatedUser = { ...user, preferences };
@@ -250,7 +267,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// Custom hook to use auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
