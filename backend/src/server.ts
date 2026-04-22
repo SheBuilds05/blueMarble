@@ -42,7 +42,7 @@ mongoose.connect(MONGODB_URI)
     
     // 4. Start the Server ONLY after DB connects
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
     });
   })
   .catch((error) => {
