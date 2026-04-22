@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Gauge, Check } from 'lucide-react';
+// 1. Import the BottomNav component
+import BottomNav from '../components/BottomNav'; 
 
 const Cards: React.FC = () => {
   const [cards, setCards] = useState<any[]>([]);
@@ -31,7 +33,8 @@ const Cards: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-[#052ce0] min-h-screen text-white font-sans">
+    // 2. Added pb-32 to prevent content from being cut off by the navbar
+    <div className="p-6 bg-[#052ce0] min-h-screen text-white font-sans pb-32">
       <h1 className="text-3xl font-black italic uppercase mb-10 tracking-tighter">My Cards</h1>
 
       {/* Main Card Display */}
@@ -58,7 +61,7 @@ const Cards: React.FC = () => {
         )}
       </div>
 
-      {/* Control Panel - Only ATM Limits remains */}
+      {/* Control Panel */}
       <div className="grid grid-cols-1 gap-4">
         <ControlBtn 
           icon={<Gauge size={20}/>} 
@@ -85,6 +88,9 @@ const Cards: React.FC = () => {
           </button>
         </Modal>
       )}
+
+      {/* 3. Add the BottomNav component */}
+      <BottomNav />
     </div>
   );
 };
