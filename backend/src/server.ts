@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/authRoutes';
 import withdrawRoutes from './routes/withdrawals';
 import profileRoutes from './routes/profile';
+import buy from './routes/buy';
 import notification from './routes/notifications'
 import accountRoutes from './routes/accountRoutes';
 
@@ -29,9 +30,10 @@ app.use('/api/auth', accountRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/withdraw', withdrawRoutes);
 app.use('/api/profile', profileRoutes);
-app.use('/api/notifications', notification);
-
-// --- STEP 3: DATABASE & START ---
+app.use('/api/auth', authRoutes);
+app.use('/api/notifications', notification)
+app.use('/api/buy', buy)
+// 3. Database Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
