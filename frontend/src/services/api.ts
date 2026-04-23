@@ -22,8 +22,12 @@ export const loginUser = (email: string, password: string) =>
 // ========== ACCOUNTS ==========
 export const getUserAccounts = () => api.get('/auth/accounts');
 
+// NEW: Endpoint to add a secondary account (Cheque/Invest)
+export const addAccount = (type: string) => 
+  api.post('/auth/add-account', { type });
+
 // ========== USER PROFILE ==========
-export const getUserProfile = () => api.get('/auth/accounts'); // Using accounts endpoint as profile
+export const getUserProfile = () => api.get('/auth/accounts'); 
 
 // ========== TRANSFERS / PAYMENTS ==========
 export const transferFunds = (fromAccountId: string, toAccountId: string, amount: number, reference?: string) =>
@@ -48,7 +52,8 @@ export const buyAirtime = (provider: string, phoneNumber: string, amount: number
 export const buyElectricity = (provider: string, meterNumber: string, amount: number) =>
   api.post('/buy/electricity', { provider, meterNumber, amount });
 
-export const buyVoucher = (voucherType: string, amount: number, email: string) =>
-  api.post('/buy/voucher', { voucherType, amount, email });
+// FIXED: Changed 'voucherType' to 'provider' to match your backend destructuring
+export const buyVoucher = (provider: string, amount: number, email: string) =>
+  api.post('/buy/voucher', { provider, amount, email });
 
 export default api;
