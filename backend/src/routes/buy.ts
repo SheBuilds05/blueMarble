@@ -19,16 +19,18 @@ const processPurchase = async (
   try {
     const userId = req.user?.id || req.user?.userId;
     
-    // 1. Fetch the user first to check balance
+    // 1. Fetch user to check current state
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // 2. Identify the account index
+    // 2. Locate the savings account index
     const accountIndex = user.accounts?.findIndex(acc => acc.type === 'savings');
+    
     if (accountIndex === -1 || accountIndex === undefined) {
       return res.status(400).json({ message: 'Savings account not found' });
     }
 
+    // 3. Validate Funds
     const currentBalance = Number(user.accounts[accountIndex].balance);
     if (currentBalance < numAmount) {
       return res.status(400).json({ message: 'Insufficient funds' });
@@ -36,28 +38,37 @@ const processPurchase = async (
 
     const newBalance = parseFloat((currentBalance - numAmount).toFixed(2));
 
-    // 3. ATOMIC UPDATE: Use findOneAndUpdate with positional operator ($)
-    // This targets the specific account inside the array and updates only the balance
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: userId, "accounts.type": "savings" },
-      { $set: { "accounts.$.balance": newBalance } },
-      { new: true } // Returns the updated document
+    // 4. SURGICAL UPDATE: Update both the specific account and global balance
+    // This uses the explicit path to ensure MongoDB precisely hits the correct array index
+    const updatePath = `accounts.${accountIndex}.balance`;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { 
+        $set: { 
+          [updatePath]: newBalance,
+          balance: newBalance // Keeps global balance in sync with savings
+        } 
+      },
+      { new: true, runValidators: true }
     );
 
     if (!updatedUser) {
       return res.status(500).json({ message: 'Failed to update balance in database' });
     }
 
-    // 4. Create secondary records (Transaction, Purchase, Notification)
+    // 5. Create Transaction Record
     const transaction = await Transaction.create({
       userId: userId,
       beneficiaryName: provider,
       amount: numAmount,
       reference: `${category.toUpperCase()}: ${identifier}`,
       type: 'Purchase',
-      status: 'completed'
+      status: 'completed',
+      date: new Date()
     });
 
+    // 6. Create Purchase Record
     await Purchase.create({
       userId: userId,
       category,
@@ -68,33 +79,66 @@ const processPurchase = async (
       transactionId: transaction._id
     });
 
+    // 7. Create Notification
     await Notification.create({
       userId: userId,
-      title: 'Purchase Successful',
-      message: `R${numAmount} for ${category} (${provider})`,
+      title: `${category.charAt(0).toUpperCase() + category.slice(1)} Successful`,
+      message: `R${numAmount.toFixed(2)} paid to ${provider} for ${identifier}`,
       type: 'transaction'
     });
 
+    // 8. Return response with the actual value from the DB
     return res.json({ 
       message: 'Purchase successful', 
-      newBalance: newBalance,
+      newBalance: updatedUser.accounts[accountIndex].balance,
       transactionId: transaction._id
     });
 
   } catch (err) {
-    console.error('Final attempt error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error(`Purchase error (${category}):`, err);
+    return res.status(500).json({ message: 'Server error during purchase process' });
   }
 };
 
-// --- Standard Routes ---
-router.post('/airtime', verifyToken, (req, res) => 
-  processPurchase(req, res, 'airtime', { provider: req.body.provider, amount: req.body.amount, identifier: req.body.phone, extraDetails: { phone: req.body.phone } }));
+// --- API Endpoints ---
 
-router.post('/electricity', verifyToken, (req, res) => 
-  processPurchase(req, res, 'electricity', { provider: req.body.provider, amount: req.body.amount, identifier: req.body.meter, extraDetails: { meter: req.body.meter } }));
+router.post('/airtime', verifyToken, (req: any, res: Response) => {
+  const { provider, phone, amount } = req.body;
+  processPurchase(req, res, 'airtime', { 
+    provider, 
+    amount, 
+    identifier: phone, 
+    extraDetails: { phone } 
+  });
+});
 
-router.post('/voucher', verifyToken, (req, res) => 
-  processPurchase(req, res, 'voucher', { provider: req.body.provider, amount: req.body.amount, identifier: req.body.email, extraDetails: { email: req.body.email, voucherCode: `VCH-${Math.random().toString(36).toUpperCase().slice(2,10)}` } }));
+router.post('/electricity', verifyToken, (req: any, res: Response) => {
+  const { provider, meter, amount } = req.body;
+  processPurchase(req, res, 'electricity', { 
+    provider, 
+    amount, 
+    identifier: meter, 
+    extraDetails: { meter } 
+  });
+});
+
+router.post('/voucher', verifyToken, (req: any, res: Response) => {
+  // Destructure from req.body
+  const { provider, amount, email } = req.body;
+
+  // Validate that email exists before proceeding
+  if (!email) {
+    return res.status(400).json({ message: 'Recipient email is required for vouchers' });
+  }
+
+  const voucherCode = `VCH-${Math.random().toString(36).toUpperCase().slice(2, 10)}`;
+  
+  processPurchase(req, res, 'voucher', { 
+    provider, 
+    amount, 
+    identifier: email, 
+    extraDetails: { email, voucherCode } 
+  });
+});
 
 export default router;
