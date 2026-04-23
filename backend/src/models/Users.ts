@@ -95,7 +95,6 @@ const UserSchema: Schema = new Schema({
   // From version 1
   balance: { type: Number, default: 1000 },
   accounts: [{
-    _id: false,
     id: { type: String, required: true },
     name: { type: String, required: true },
     type: { type: String, required: true },
