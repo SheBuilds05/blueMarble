@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getUserAccounts, buyAirtime, buyElectricity, buyVoucher } from '../services/api';
 
 interface Account {
@@ -10,6 +11,7 @@ interface Account {
 }
 
 const Buy = () => {
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [category, setCategory] = useState<'airtime' | 'electricity' | 'voucher'>('airtime');
@@ -67,8 +69,9 @@ const Buy = () => {
     if (!provider) return setMessage({ text: 'Select a provider', type: 'error' });
     if (category === 'airtime' && !phone) return setMessage({ text: 'Enter phone number', type: 'error' });
     if (category === 'electricity' && !meter) return setMessage({ text: 'Enter meter number', type: 'error' });
-    if (category === 'voucher' && !email) return setMessage({ text: 'Enter email address', type: 'error' });
-    
+if (category === 'voucher' && !email.includes('@')) {
+    return setMessage({ text: 'Please enter a valid email address', type: 'error' });
+  }    
     if (isNaN(numAmount) || numAmount <= 0) {
       return setMessage({ text: 'Enter a valid amount', type: 'error' });
     }
@@ -85,12 +88,11 @@ const Buy = () => {
       } else if (category === 'electricity') {
         response = await buyElectricity(provider, meter, numAmount);
       } else {
-        response = await buyVoucher(provider, numAmount, email);
-      }
+        response = await buyVoucher(provider, numAmount, email);      }
 
       console.log('Purchase response:', response.data);
       
-      // ✅ Update the local account balance with the new balance from response
+      // Update the local account balance with the new balance from response
       if (response.data && response.data.newBalance !== undefined) {
         setAccounts(prevAccounts => 
           prevAccounts.map(acc => 
@@ -101,7 +103,7 @@ const Buy = () => {
         );
       }
       
-      // ✅ Also refresh accounts from backend to ensure consistency
+      // Also refresh accounts from backend to ensure consistency
       await loadAccounts();
       
       alert(`${category.toUpperCase()} purchase successful!`);
@@ -125,6 +127,10 @@ const Buy = () => {
     }
   };
 
+  const goToDashboard = () => {
+    navigate('/dashboard');
+  };
+
   if (loadingAccounts) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -140,6 +146,12 @@ const Buy = () => {
           <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">No Accounts Found</h2>
           <p className="text-slate-600 mb-4">Please contact support to set up your account.</p>
+          <button
+            onClick={goToDashboard}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+          >
+            Go to Dashboard
+          </button>
         </div>
       </div>
     );
@@ -149,15 +161,28 @@ const Buy = () => {
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-lg mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={goToDashboard}
+            className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-all"
+          >
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
+            <span className="text-slate-700 font-medium">Dashboard</span>
+          </button>
+          <div className="text-center flex-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-600 shadow-lg mb-2">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Buy Services</h1>
+          <div className="w-24"></div> {/* Spacer for alignment */}
         </div>
+
+        <h1 className="text-2xl font-bold text-slate-800 text-center mb-6">Buy Services</h1>
 
         {/* Account Selection */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
