@@ -29,7 +29,7 @@ useEffect(() => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/accounts`, {
+      const response = await fetch(`https://bluemarble.onrender.com/api/auth/accounts`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -77,7 +77,7 @@ useEffect(() => {
 
     try {
       // 3. Updated fetch with Authorization Header
-      const response = await fetch('http://localhost:5000/api/withdraw', {
+      const response = await fetch('https://bluemarble.onrender.com/api/withdraw', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

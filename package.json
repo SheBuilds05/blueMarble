@@ -4,7 +4,10 @@
   "description": "**OpenBank Cloud Simulation**",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview"
   },
   "repository": {
     "type": "git",

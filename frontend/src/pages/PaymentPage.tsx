@@ -26,7 +26,7 @@ const PaymentPage: React.FC = () => {
     const headers = { 'Authorization': `Bearer :token` }; // Using standard backticks for headers
 
     try {
-      const benRes = await fetch('http://localhost:5000/api/auth/beneficiaries', { 
+      const benRes = await fetch('https://bluemarble.onrender.com/api/auth/beneficiaries', { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       if (benRes.ok) {
@@ -34,7 +34,7 @@ const PaymentPage: React.FC = () => {
         setBeneficiaries(benData);
       }
 
-      const accRes = await fetch('http://localhost:5000/api/auth/accounts', { 
+      const accRes = await fetch('https://bluemarble.onrender.com/api/auth/accounts', { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       if (accRes.ok) {
@@ -69,7 +69,7 @@ const PaymentPage: React.FC = () => {
     const token = localStorage.getItem('token');
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/pay', {
+      const response = await fetch('https://bluemarble.onrender.com/api/auth/pay', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
  
       try {
         // Fetch accounts directly from your auth/accounts route
-        const response = await fetch(`http://localhost:5000/api/auth/accounts`, {
+        const response = await fetch(`https://bluemarble.onrender.com/api/auth/accounts`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
        
