@@ -7,6 +7,8 @@ export interface ITransaction extends Document {
   amount: number;
   reference: string;
   type: string;
+  category?: string; // e.g., 'airtime', 'electricity', 'transfer'
+  status: string;    // e.g., 'completed', 'pending', 'failed'
   date: Date;
 }
 
@@ -31,14 +33,24 @@ const TransactionSchema: Schema = new Schema({
   },
   type: { 
     type: String, 
+    enum: ['Payment', 'Purchase', 'Transfer', 'Deposit'],
     default: 'Payment' 
+  },
+  category: {
+    type: String,
+    required: false
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'completed'
   },
   date: { 
     type: Date, 
     default: Date.now 
   }
 }, { 
-  timestamps: true 
+  timestamps: true // This automatically adds createdAt and updatedAt
 });
 
 // Export the model only once
