@@ -1,5 +1,5 @@
-import { Router, Request, Response } from 'express';
-import authMiddleware from '../middleware/authMiddleware';
+import { Router, Response } from 'express';
+import { verifyToken } from '../middleware/authMiddleware';
 import User from '../models/Users';
 import Transaction from '../models/Transaction';
 import Notification from '../models/Notification';
@@ -7,194 +7,138 @@ import Purchase from '../models/Purchase';
 
 const router = Router();
 
-/* =========================
-   BUY AIRTIME
-========================= */
-router.post('/airtime', authMiddleware, async (req: Request, res: Response) => {
-  const { provider, phoneNumber, amount } = req.body;
+const processPurchase = async (
+  req: any, 
+  res: Response, 
+  category: 'airtime' | 'electricity' | 'voucher',
+  data: { provider: string; amount: any; identifier: string; extraDetails: any }
+) => {
+  const { provider, amount, identifier, extraDetails } = data;
+  const numAmount = parseFloat(amount);
 
   try {
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id || req.user?.userId;
+    
+    // 1. Fetch user to check current state
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const user: any = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    // 2. Locate the savings account index
+    const accountIndex = user.accounts?.findIndex(acc => acc.type === 'savings');
+    
+    if (accountIndex === -1 || accountIndex === undefined) {
+      return res.status(400).json({ message: 'Savings account not found' });
     }
 
-    const savings = user.accounts.find((acc: any) => acc.type === 'savings');
-
-    if (!savings) {
-      return res.status(400).json({ error: 'Savings account not found' });
+    // 3. Validate Funds
+    const currentBalance = Number(user.accounts[accountIndex].balance);
+    if (currentBalance < numAmount) {
+      return res.status(400).json({ message: 'Insufficient funds' });
     }
 
-    if (savings.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
+    const newBalance = parseFloat((currentBalance - numAmount).toFixed(2));
+
+    // 4. SURGICAL UPDATE: Update both the specific account and global balance
+    // This uses the explicit path to ensure MongoDB precisely hits the correct array index
+    const updatePath = `accounts.${accountIndex}.balance`;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { 
+        $set: { 
+          [updatePath]: newBalance,
+          balance: newBalance // Keeps global balance in sync with savings
+        } 
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(500).json({ message: 'Failed to update balance in database' });
     }
 
-    savings.balance -= amount;
-    await user.save();
-
+    // 5. Create Transaction Record
     const transaction = await Transaction.create({
-      userId: user._id,
-      type: 'purchase',
-      amount: -amount,
-      status: 'completed'
+      userId: userId,
+      beneficiaryName: provider,
+      amount: numAmount,
+      reference: `${category.toUpperCase()}: ${identifier}`,
+      type: 'Purchase',
+      status: 'completed',
+      date: new Date()
     });
 
+    // 6. Create Purchase Record
     await Purchase.create({
-      userId: user._id,
-      category: 'airtime',
+      userId: userId,
+      category,
       provider,
-      amount,
-      details: { phoneNumber },
+      amount: numAmount,
+      details: extraDetails,
       status: 'completed',
       transactionId: transaction._id
     });
 
+    // 7. Create Notification
     await Notification.create({
-      userId: user._id,
-      title: 'Airtime Purchase',
-      message: `R${amount} airtime purchased for ${phoneNumber}`,
+      userId: userId,
+      title: `${category.charAt(0).toUpperCase() + category.slice(1)} Successful`,
+      message: `R${numAmount.toFixed(2)} paid to ${provider} for ${identifier}`,
       type: 'transaction'
     });
 
-    return res.json({
-      success: true,
-      message: `R${amount} airtime purchased for ${phoneNumber}`,
-      newBalance: savings.balance
+    // 8. Return response with the actual value from the DB
+    return res.json({ 
+      message: 'Purchase successful', 
+      newBalance: updatedUser.accounts[accountIndex].balance,
+      transactionId: transaction._id
     });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error(`Purchase error (${category}):`, err);
+    return res.status(500).json({ message: 'Server error during purchase process' });
   }
+};
+
+// --- API Endpoints ---
+
+router.post('/airtime', verifyToken, (req: any, res: Response) => {
+  const { provider, phone, amount } = req.body;
+  processPurchase(req, res, 'airtime', { 
+    provider, 
+    amount, 
+    identifier: phone, 
+    extraDetails: { phone } 
+  });
 });
 
-
-/* =========================
-   BUY ELECTRICITY
-========================= */
-router.post('/electricity', authMiddleware, async (req: Request, res: Response) => {
-  const { provider, meterNumber, amount } = req.body;
-
-  try {
-    const userId = (req as any).user?.id;
-
-    const user: any = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const savings = user.accounts.find((acc: any) => acc.type === 'savings');
-
-    if (!savings || savings.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
-    }
-
-    savings.balance -= amount;
-    await user.save();
-
-    const transaction = await Transaction.create({
-      userId: user._id,
-      type: 'purchase',
-      amount: -amount,
-      status: 'completed'
-    });
-
-    await Purchase.create({
-      userId: user._id,
-      category: 'electricity',
-      provider,
-      amount,
-      details: { meterNumber },
-      status: 'completed',
-      transactionId: transaction._id
-    });
-
-    await Notification.create({
-      userId: user._id,
-      title: 'Electricity Purchase',
-      message: `R${amount} electricity for meter ${meterNumber}`,
-      type: 'transaction'
-    });
-
-    return res.json({
-      success: true,
-      message: `R${amount} electricity purchased for meter ${meterNumber}`,
-      newBalance: savings.balance
-    });
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Server error' });
-  }
+router.post('/electricity', verifyToken, (req: any, res: Response) => {
+  const { provider, meter, amount } = req.body;
+  processPurchase(req, res, 'electricity', { 
+    provider, 
+    amount, 
+    identifier: meter, 
+    extraDetails: { meter } 
+  });
 });
 
+router.post('/voucher', verifyToken, (req: any, res: Response) => {
+  // Destructure from req.body
+  const { provider, amount, email } = req.body;
 
-/* =========================
-   BUY VOUCHER
-========================= */
-router.post('/voucher', authMiddleware, async (req: Request, res: Response) => {
-  const { voucherType, amount, email } = req.body;
-
-  try {
-    const userId = (req as any).user?.id;
-
-    const user: any = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const savings = user.accounts.find((acc: any) => acc.type === 'savings');
-
-    if (!savings || savings.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient funds' });
-    }
-
-    savings.balance -= amount;
-    await user.save();
-
-    const voucherCode =
-      `VCH-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-
-    const transaction = await Transaction.create({
-      userId: user._id,
-      type: 'purchase',
-      amount: -amount,
-      status: 'completed'
-    });
-
-    await Purchase.create({
-      userId: user._id,
-      category: 'voucher',
-      provider: voucherType,
-      amount,
-      details: { email, voucherCode },
-      status: 'completed',
-      transactionId: transaction._id
-    });
-
-    await Notification.create({
-      userId: user._id,
-      title: 'Voucher Purchase',
-      message: `${voucherType} voucher worth R${amount} sent to ${email}`,
-      type: 'transaction'
-    });
-
-    return res.json({
-      success: true,
-      message: `${voucherType} voucher sent to ${email}`,
-      newBalance: savings.balance,
-      voucherCode
-    });
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Server error' });
+  // Validate that email exists before proceeding
+  if (!email) {
+    return res.status(400).json({ message: 'Recipient email is required for vouchers' });
   }
+
+  const voucherCode = `VCH-${Math.random().toString(36).toUpperCase().slice(2, 10)}`;
+  
+  processPurchase(req, res, 'voucher', { 
+    provider, 
+    amount, 
+    identifier: email, 
+    extraDetails: { email, voucherCode } 
+  });
 });
 
 export default router;

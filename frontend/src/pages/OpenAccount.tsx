@@ -14,8 +14,6 @@ const OpenAccount: React.FC = () => {
     firstName: '', 
     surname: '',
     idNumber: '',
-    email: '',
-    phone: '',
     address: '',
     employment: 'Employed',
     balance: '0'
@@ -132,6 +130,8 @@ const OpenAccount: React.FC = () => {
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-2">ID Number</label>
               <input name="idNumber" required onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all" placeholder="13-digit ID" />
             </div>
+
+           
 
             <div className="md:col-span-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-2">Certified ID Copy (PDF/Image)</label>

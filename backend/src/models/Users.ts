@@ -82,7 +82,12 @@ const UserSchema: Schema = new Schema({
   name: { type: String }, // Made optional to maintain backward compatibility
   
   // Common fields
-  email: { type: String, required: false, unique: false,default: "" },
+  email: { 
+    type: String, 
+    unique: true, 
+    sparse: true, 
+    default: null 
+  },
   password: { type: String, required: true },
   registerCode: { type: String, required: true },
   phone: { type: String }, // Merged from version 2 (optional)
@@ -90,7 +95,6 @@ const UserSchema: Schema = new Schema({
   // From version 1
   balance: { type: Number, default: 1000 },
   accounts: [{
-    _id: false,
     id: { type: String, required: true },
     name: { type: String, required: true },
     type: { type: String, required: true },

@@ -155,6 +155,20 @@ const RegisterPage: React.FC = () => {
         
             <input name="phone" value={formData.phone} type="tel" placeholder="Phone Number" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
             
+            <div className="space-y-1">
+    <label className="text-[10px] font-black text-blue-200 uppercase tracking-widest ml-1">Email Address</label>
+    <input 
+      name="email" 
+      type="email" 
+      value={formData.email} 
+      placeholder="e.g. khensani@example.com" 
+      onChange={handleChange} 
+      required 
+      className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors placeholder:text-blue-200/50" 
+    />
+  </div>
+
+
             <div className="relative">
               <input name="password" value={formData.password} type={showPassword ? "text" : "password"} placeholder="Set Password" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-4 text-[10px] text-blue-200 font-bold hover:text-white transition-colors">{showPassword ? "HIDE" : "SHOW"}</button>
