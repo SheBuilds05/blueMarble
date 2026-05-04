@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "**OpenBank Cloud Simulation**",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SheBuilds05/blueMarble.git"
@@ -27,5 +25,15 @@
     "postcss": "^8.5.9",
     "react-router-dom": "^7.14.0",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.6.0",
+    "allure-playwright": "^3.7.1",
+    "allure-vitest": "^3.7.1",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.5"
   }
 }

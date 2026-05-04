@@ -56,3 +56,10 @@ Desktop.ini
 *.temp
 .cache
 >>>>>>> sibongokuhle
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
