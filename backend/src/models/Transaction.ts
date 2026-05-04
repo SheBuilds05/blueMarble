@@ -8,7 +8,6 @@ export interface ITransaction extends Document {
   reference?: string;
   type: string;
   category?: string; // e.g., 'airtime', 'electricity', 'transfer'
-  status: string;    // e.g., 'completed', 'pending', 'failed'
   status: 'pending' | 'completed' | 'failed';
   date: Date;
 }
