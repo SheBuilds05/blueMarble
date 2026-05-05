@@ -1,6 +1,12 @@
-import { calculateInterest } from './account';
+import { test, expect } from 'vitest';
+import { validateAccountType } from './accounts';
 
-test('White-Box: should calculate 5% interest correctly', () => {
-  const result = calculateInterest(1000, 0.05);
-  expect(result).toBe(50); // Direct internal logic check
+test('White-Box: should allow valid bank account types', () => {
+  expect(validateAccountType('Savings')).toBe(true);
+  expect(validateAccountType('Investment')).toBe(true);
+});
+
+test('White-Box: should reject invalid account types', () => {
+  expect(validateAccountType('Credit Card')).toBe(false);
+  expect(validateAccountType('Bitcoin')).toBe(false);
 });

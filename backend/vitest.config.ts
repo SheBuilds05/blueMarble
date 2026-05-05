@@ -5,8 +5,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'node',
     setupFiles: './src/test/setup.ts',
-    reporters: ['default', 'allure-vitest'], // Links to your dashboard
+    reporters: ['default', 'html'], // Links to your dashboard
   },
 });
