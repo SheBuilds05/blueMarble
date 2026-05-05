@@ -22,7 +22,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ onClose, onAcco
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ type: type, accountType: type }) // Matches backend schema key
+        body: JSON.stringify({ type: type, accountType: type })
       });
 
       if (response.ok) {
@@ -38,41 +38,41 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ onClose, onAcco
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+      <div className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-white/20">
         {step === 'selection' ? (
           <>
-            <h3 className="text-2xl font-black text-slate-800 mb-2">Open New Account</h3>
-            <p className="text-slate-500 text-sm mb-6">Choose the type of account you'd like to open today.</p>
+            <h3 className="text-2xl font-black text-[#000000] mb-2 uppercase tracking-tighter">Open New Account</h3>
+            <p className="text-slate-500 text-sm mb-6 font-bold">Choose your account type.</p>
             <div className="space-y-4">
               <select 
                 value={type} 
                 onChange={(e) => setType(e.target.value)}
-                className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-slate-700 border-none ring-2 ring-slate-100 focus:ring-[#052CE0] transition-all"
+                className="w-full p-4 bg-slate-50 rounded-2xl font-black text-[#000000] border-none ring-2 ring-slate-100 focus:ring-[#002a8f] transition-all"
               >
                 <option value="Savings">Savings Account</option>
                 <option value="Cheque">Cheque Account</option>
                 <option value="Investment">Investment Account</option>
               </select>
               <div className="flex gap-4 pt-4">
-                <button type="button" onClick={onClose} className="flex-1 p-4 rounded-2xl bg-slate-100 font-bold text-slate-500">Cancel</button>
-                <button onClick={() => setStep('terms')} className="flex-1 p-4 rounded-2xl bg-[#052CE0] text-white font-bold shadow-lg shadow-blue-200">Continue</button>
+                <button type="button" onClick={onClose} className="flex-1 p-4 rounded-2xl bg-slate-100 font-black text-[#000000] uppercase text-xs tracking-widest">Cancel</button>
+                <button onClick={() => setStep('terms')} className="flex-1 p-4 rounded-2xl bg-[#002a8f] text-white font-black uppercase text-xs tracking-widest shadow-lg">Continue</button>
               </div>
             </div>
           </>
         ) : (
           <>
-            <h3 className="text-2xl font-black text-slate-800 mb-4">Terms & Conditions</h3>
-            <div className="bg-slate-50 p-4 rounded-2xl max-h-48 overflow-y-auto mb-6 text-xs text-slate-600 leading-relaxed space-y-3 border border-slate-100">
-              <p><strong>1. Account Usage:</strong> This {type} account is subject to daily limits.</p>
-              <p><strong>2. Compliance:</strong> By clicking "Accept", you agree to our policies.</p>
-              <p><strong>3. Fees:</strong> No monthly service fees for the first 12 months.</p>
+            <h3 className="text-2xl font-black text-[#000000] mb-4 uppercase tracking-tighter">Terms & Conditions</h3>
+            <div className="bg-slate-50 p-4 rounded-2xl max-h-48 overflow-y-auto mb-6 text-xs text-slate-900 leading-relaxed space-y-3 border border-slate-100 font-bold">
+              <p><strong>1. Account Usage:</strong> Subject to daily limits.</p>
+              <p><strong>2. Compliance:</strong> You agree to our bank policies.</p>
+              <p><strong>3. Fees:</strong> No service fees for 12 months.</p>
             </div>
             <div className="flex gap-4">
-              <button onClick={() => setStep('selection')} className="flex-1 p-4 rounded-2xl bg-slate-100 font-bold text-slate-500">Back</button>
+              <button onClick={() => setStep('selection')} className="flex-1 p-4 rounded-2xl bg-slate-100 font-black text-[#000000] uppercase text-xs tracking-widest">Back</button>
               <button 
                 disabled={submitting}
                 onClick={handleFinalSubmit}
-                className="flex-1 p-4 rounded-2xl bg-[#052CE0] text-white font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                className="flex-1 p-4 rounded-2xl bg-[#002a8f] text-white font-black uppercase text-xs tracking-widest shadow-lg flex items-center justify-center gap-2"
               >
                 {submitting ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Accept & Open'}
               </button>
@@ -110,38 +110,38 @@ const TransactionModal = ({ account, onClose }: { account: any, onClose: () => v
   }, [account._id]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl">
-        <div className="p-8 text-white bg-gradient-to-r from-blue-600 to-blue-800">
-          <div className="flex justify-between items-start mb-4">
-            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">✕</button>
-            <div className="bg-white/20 p-2 rounded-lg">💳</div>
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-[#001d66]/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      <div className="bg-white w-full max-w-lg rounded-[3rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.5)]">
+        <div className="p-8 text-white bg-[#002a8f]">
+          <div className="flex justify-between items-start mb-6">
+            <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white font-black">✕</button>
+            <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md">💳</div>
           </div>
-          <p className="text-[10px] uppercase font-bold tracking-widest opacity-70">{account.accountType}</p>
-          <h3 className="text-3xl font-black">R {account.balance.toLocaleString()}</h3>
+          <p className="text-[11px] uppercase font-black tracking-[0.3em] opacity-60 mb-1">{account.accountType}</p>
+          <h3 className="text-4xl font-black tracking-tighter">R {account.balance.toLocaleString()}</h3>
         </div>
-        <div className="p-8 max-h-[60vh] overflow-y-auto bg-white">
-          <h4 className="text-slate-900 font-black mb-6">Recent Transactions</h4>
+        <div className="p-8 max-h-[50vh] overflow-y-auto bg-white">
+          <h4 className="text-[#000000] font-black text-xs uppercase tracking-[0.2em] mb-8">Activity History</h4>
           <div className="space-y-6">
             {loading ? (
-              <p className="text-center py-4 text-slate-400 font-bold italic">Fetching history...</p>
+              <p className="text-center py-4 text-[#002a8f] font-black animate-pulse uppercase text-[10px]">Syncing Records...</p>
             ) : realTransactions.length === 0 ? (
-              <p className="text-center py-4 text-slate-400">No transactions yet.</p>
+              <p className="text-center py-8 text-slate-400 font-bold">No recent movement found.</p>
             ) : (
               realTransactions.map((tx) => (
-                <div key={tx._id} className="flex justify-between items-center">
+                <div key={tx._id} className="flex justify-between items-center bg-slate-50 p-4 rounded-3xl border border-slate-100">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">
+                    <div className="w-12 h-12 bg-white shadow-sm rounded-2xl flex items-center justify-center text-xl">
                       {tx.type === 'Payment' ? '💸' : '💰'}
                     </div>
                     <div>
-                      <h5 className="font-bold text-slate-800 text-sm">{tx.beneficiaryName}</h5>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(tx.date).toLocaleDateString()}</p>
+                      <h5 className="font-black text-[#000000] text-sm uppercase tracking-tighter">{tx.beneficiaryName}</h5>
+                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{new Date(tx.date).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-black text-sm text-slate-900">- R {tx.amount.toFixed(2)}</p>
-                    <p className="text-[10px] text-green-600 font-bold uppercase">Successful</p>
+                    <p className="font-black text-sm text-[#000000]">- R {tx.amount.toFixed(2)}</p>
+                    <p className="text-[9px] text-green-600 font-black uppercase tracking-widest">Cleared</p>
                   </div>
                 </div>
               ))
@@ -179,43 +179,78 @@ const AccountsPage: React.FC = () => {
 
   useEffect(() => { fetchAccounts(); }, []);
 
-  if (loading) return <div className="flex h-screen items-center justify-center font-black text-[#052CE0] animate-pulse">Loading Secure Data...</div>;
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center bg-[#001d66]">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4" />
+        <p className="font-black text-white uppercase tracking-[0.4em] text-[10px]">Loading Vault</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#f4f7f9] pb-32 relative">
-      <nav className="flex justify-between items-center p-6 max-w-lg mx-auto">
-        <div className="flex items-center gap-4">
-          <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-white shadow-sm border flex items-center justify-center hover:bg-[#052CE0] hover:text-white transition-all">←</button>
-          <span className="font-black text-[#1a2a4a] text-lg">My Accounts</span>
+    <div className="min-h-screen bg-[#f8fafc] pb-32 relative">
+      {/* Header Styled like Dashboard */}
+      <nav className="bg-[#002a8f] p-8 pb-12 rounded-b-[3.5rem] shadow-2xl">
+        <div className="max-w-lg mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => window.history.back()} 
+              className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white font-black hover:bg-white/20 transition-all"
+            >
+              ←
+            </button>
+            <div>
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em]">BlueMarble Vault</p>
+              <h1 className="font-black text-white text-2xl uppercase tracking-tighter">My Accounts</h1>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)} 
+            className="w-14 h-14 rounded-[1.5rem] bg-white text-[#002a8f] flex items-center justify-center font-black text-2xl shadow-2xl active:scale-90 transition-transform"
+          >
+            +
+          </button>
         </div>
-        <button onClick={() => setShowAddModal(true)} className="w-10 h-10 rounded-full bg-[#052CE0] text-white flex items-center justify-center font-bold text-xl shadow-lg active:scale-90 transition-transform">+</button>
       </nav>
 
-      <main className="px-6 max-w-lg mx-auto mt-4">
-        <div className="space-y-4">
+      <main className="px-6 max-w-lg mx-auto -mt-6">
+        <div className="space-y-6">
           {accounts.map((acc) => (
             <div 
               key={acc._id} 
               onClick={() => setSelectedAccount(acc)}
-              className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 rounded-[2.5rem] shadow-xl text-white cursor-pointer active:scale-95 transition-all relative overflow-hidden group"
+              className="bg-[#002a8f] p-8 rounded-[3rem] shadow-[0_20px_50px_rgba(0,42,143,0.3)] text-white cursor-pointer active:scale-95 transition-all relative overflow-hidden group"
             >
+              {/* Background Accent */}
+              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700" />
+              
               <div className="relative z-10">
-                <p className="text-[10px] opacity-70 uppercase font-black tracking-widest">{acc.accountType}</p>
-                <p className="text-xs font-mono opacity-70 mb-6">
-                  **** **** **** {acc.cardDetails?.cardNumber?.slice(-4) || '0000'}
-                </p>
-                <h3 className="text-3xl font-black">R {acc.balance.toLocaleString()}</h3>
-                <p className="text-[10px] mt-2 opacity-50 font-mono">ACC: {acc.accountNumber}</p>
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <p className="text-[10px] text-white/60 uppercase font-black tracking-[0.3em] mb-1">{acc.accountType}</p>
+                    <p className="text-xs font-black tracking-widest text-white/40">
+                      •••• •••• •••• {acc.cardDetails?.cardNumber?.slice(-4) || '8842'}
+                    </p>
+                  </div>
+                  <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-xl border border-white/10">💳</div>
+                </div>
+                
+                <h3 className="text-4xl font-black tracking-tighter">R {acc.balance.toLocaleString()}</h3>
+                
+                <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
+                  <p className="text-[9px] font-black tracking-widest text-white/40 uppercase">ACC: {acc.accountNumber}</p>
+                  <span className="text-[9px] font-black bg-white text-[#002a8f] px-3 py-1 rounded-full uppercase tracking-widest">Details</span>
+                </div>
               </div>
-              <div className="absolute top-8 right-8 bg-white/20 p-2 rounded-xl backdrop-blur-md">💳</div>
             </div>
           ))}
           
           <button 
             onClick={() => setShowAddModal(true)}
-            className="w-full p-8 border-2 border-dashed border-slate-300 rounded-[2.5rem] text-slate-400 font-bold hover:bg-white hover:border-[#052CE0] hover:text-[#052CE0] transition-all"
+            className="w-full p-10 border-4 border-dashed border-slate-200 rounded-[3rem] text-[#002a8f]/30 font-black uppercase tracking-[0.2em] text-xs hover:bg-white hover:border-[#002a8f] hover:text-[#002a8f] transition-all group"
           >
-            + Open New Account
+            <span className="group-hover:scale-110 transition-transform block">+ Add New Account</span>
           </button>
         </div>
       </main>

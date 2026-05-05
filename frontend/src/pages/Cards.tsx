@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Gauge, Check } from 'lucide-react';
-// 1. Import the BottomNav component
+import { Gauge, Check, ShieldCheck, Snowflake, CreditCard } from 'lucide-react';
 import BottomNav from '../components/BottomNav'; 
 
 const Cards: React.FC = () => {
@@ -10,6 +9,7 @@ const Cards: React.FC = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [newLimit, setNewLimit] = useState("");
 
+  const DASHBOARD_BLUE = "#002a8f";
   const API_BASE = "https://supreme-space-meme-5gjwwgpq44pw37x65-5000.app.github.dev/api/cards";
 
   useEffect(() => { fetchCards(); }, []);
@@ -33,83 +33,129 @@ const Cards: React.FC = () => {
   };
 
   return (
-    // 2. Added pb-32 to prevent content from being cut off by the navbar
-    <div className="p-6 bg-[#052ce0] min-h-screen text-white font-sans pb-32">
-      <h1 className="text-3xl font-black italic uppercase mb-10 tracking-tighter">My Cards</h1>
-
-      {/* Main Card Display */}
-      <div className="mb-12 border-2 border-dashed border-white/20 rounded-[40px] p-6 flex justify-center">
-        {selectedCard && (
-          <div className={`relative overflow-hidden p-8 rounded-[35px] w-full shadow-2xl transition-all duration-500 ${selectedCard.status === 'Frozen' ? 'bg-gray-200 grayscale' : 'bg-white text-blue-900'}`}>
-            {selectedCard.status === 'Frozen' && (
-              <div className="absolute inset-0 flex items-center justify-center bg-blue-900/10 backdrop-blur-[2px] z-10">
-                <span className="bg-blue-900 text-white px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest">Frozen</span>
-              </div>
-            )}
-            <div className="flex justify-between mb-8 text-[10px] font-black uppercase opacity-40">
-              <span>{selectedCard.tier}</span>
-              <span className="italic font-bold text-lg">OpenBank</span>
-            </div>
-            <div className="text-2xl mb-10 tracking-[0.3em] font-mono font-bold text-center">
-              •••• •••• •••• {selectedCard.lastFour || selectedCard.cardNumber?.slice(-4)}
-            </div>
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-              <span>{selectedCard.cardHolder}</span>
-              <span>{selectedCard.expiry}</span>
-            </div>
+    <div className="bg-[#f8fafc] min-h-screen pb-32 relative">
+      {/* Header Styled like Dashboard/Accounts */}
+      <nav className="bg-[#002a8f] p-8 pb-14 rounded-b-[3.5rem] shadow-2xl mb-8">
+        <div className="max-w-lg mx-auto flex items-center gap-6">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
+            <CreditCard size={24} />
           </div>
-        )}
-      </div>
+          <div>
+            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em]">Security Center</p>
+            <h1 className="font-black text-white text-2xl uppercase tracking-tighter">Card Manager</h1>
+          </div>
+        </div>
+      </nav>
 
-      {/* Control Panel */}
-      <div className="grid grid-cols-1 gap-4">
-        <ControlBtn 
-          icon={<Gauge size={20}/>} 
-          label="ATM Limits" 
-          onClick={() => {setNewLimit(selectedCard?.atmLimit); setShowLimitModal(true);}} 
-        />
-      </div>
+      <main className="px-6 max-w-lg mx-auto -mt-10">
+        {/* Main Card Display */}
+        <div className="mb-10">
+          {selectedCard && (
+            <div className={`relative overflow-hidden p-8 rounded-[3rem] w-full shadow-[0_25px_60px_rgba(0,42,143,0.3)] transition-all duration-500 aspect-[1.6/1] flex flex-col justify-between ${selectedCard.status === 'Frozen' ? 'bg-slate-300 grayscale' : 'bg-[#002a8f] text-white border border-white/10'}`}>
+              
+              {/* Card Decoration */}
+              <div className="absolute -right-16 -top-16 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+              <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-blue-400/10 rounded-full blur-xl" />
+
+              <div className="relative z-20">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-1">{selectedCard.tier || 'Platinum'}</p>
+                    <span className="italic font-black text-xl tracking-tighter">blueMarble</span>
+                  </div>
+                  <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md border border-white/10">
+                    <ShieldCheck size={20} className="text-white/80" />
+                  </div>
+                </div>
+              </div>
+
+              {selectedCard.status === 'Frozen' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/40 backdrop-blur-[4px] z-30">
+                  <div className="bg-white text-[#002a8f] px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2">
+                    <Snowflake size={14} /> Card Frozen
+                  </div>
+                </div>
+              )}
+
+              <div className="relative z-20">
+                <div className="text-2xl mb-8 tracking-[0.25em] font-mono font-black text-center">
+                  •••• •••• •••• {selectedCard.lastFour || selectedCard.cardNumber?.slice(-4)}
+                </div>
+                
+                <div className="flex justify-between items-end text-[10px] font-black uppercase tracking-widest opacity-80">
+                  <div>
+                    <p className="opacity-40 text-[8px] mb-1">Card Holder</p>
+                    <span className="tracking-tighter text-xs">{selectedCard.cardHolder}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="opacity-40 text-[8px] mb-1">Expires</p>
+                    <span className="text-xs">{selectedCard.expiry}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Control Panel Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          <ControlBtn 
+            icon={<Gauge size={22} className="text-[#002a8f]"/>} 
+            label="ATM Daily Limits" 
+            sub="Set withdrawal boundaries"
+            onClick={() => {setNewLimit(selectedCard?.atmLimit); setShowLimitModal(true);}} 
+          />
+          <ControlBtn 
+            icon={<ShieldCheck size={22} className="text-[#002a8f]"/>} 
+            label="Online Transactions" 
+            sub="Manage e-commerce access"
+            onClick={() => {}} 
+          />
+        </div>
+      </main>
 
       {/* LIMIT MODAL */}
       {showLimitModal && (
-        <Modal title="ATM Daily Limit" onClose={() => setShowLimitModal(false)}>
-          <p className="text-sm opacity-60 mb-6 text-blue-900">Adjust your maximum daily withdrawal amount.</p>
+        <Modal title="Limit Settings" onClose={() => setShowLimitModal(false)}>
+          <p className="text-[11px] font-black uppercase tracking-widest opacity-40 mb-6 text-[#000000]">ATM Daily Limit</p>
           <div className="relative mb-8">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold opacity-40">R</span>
+            <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-[#002a8f] text-xl">R</span>
             <input
               type="number"
-              className="w-full bg-blue-50 p-5 pl-10 rounded-2xl text-xl font-black text-blue-900 outline-none"
+              className="w-full bg-slate-50 p-6 pl-12 rounded-[2rem] text-2xl font-black text-[#000000] outline-none ring-4 ring-slate-100/50 focus:ring-[#002a8f]/10"
               value={newLimit}
               onChange={(e) => setNewLimit(e.target.value)}
             />
           </div>
-          <button onClick={handleUpdateLimit} className="w-full bg-[#052ce0] text-white p-5 rounded-3xl font-black uppercase flex items-center justify-center gap-2">
+          <button onClick={handleUpdateLimit} className="w-full bg-[#002a8f] text-white p-6 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-200 active:scale-95 transition-all flex items-center justify-center gap-3">
             <Check size={20} /> Update Limit
           </button>
         </Modal>
       )}
 
-      {/* 3. Add the BottomNav component */}
       <BottomNav />
     </div>
   );
 };
 
-const ControlBtn = ({ icon, label, onClick }: any) => (
-  <button onClick={onClick} className="w-full bg-white/10 p-6 rounded-3xl flex justify-between items-center border border-white/5 hover:bg-white/20 transition-all active:scale-95">
-    <div className="flex items-center gap-4">
-      <div className="p-3 bg-white/10 rounded-xl">{icon}</div>
-      <span className="font-bold uppercase text-[11px] tracking-widest">{label}</span>
+const ControlBtn = ({ icon, label, sub, onClick }: any) => (
+  <button onClick={onClick} className="w-full bg-white p-6 rounded-[2.5rem] flex justify-between items-center shadow-sm border border-slate-100 hover:shadow-md hover:border-[#002a8f]/20 transition-all active:scale-95 text-left">
+    <div className="flex items-center gap-5">
+      <div className="p-4 bg-slate-50 rounded-2xl">{icon}</div>
+      <div>
+        <span className="font-black uppercase text-xs tracking-tighter text-[#000000] block">{label}</span>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{sub}</span>
+      </div>
     </div>
-    <span className="opacity-40 text-2xl">&rsaquo;</span>
+    <span className="text-[#002a8f] opacity-20 text-3xl font-light">&rsaquo;</span>
   </button>
 );
 
 const Modal = ({ title, children, onClose }: any) => (
-  <div className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-6">
-    <div className="bg-white text-blue-900 w-full max-w-sm rounded-[40px] p-10 relative animate-in fade-in zoom-in duration-300">
-      <button onClick={onClose} className="absolute top-6 right-8 text-3xl opacity-20 hover:opacity-100">&times;</button>
-      <h2 className="text-xl font-black italic uppercase mb-8 border-b pb-4 tracking-tighter">{title}</h2>
+  <div className="fixed inset-0 bg-[#001d66]/80 backdrop-blur-md flex items-end sm:items-center justify-center z-[10000] p-4">
+    <div className="bg-white text-[#000000] w-full max-w-sm rounded-[3.5rem] p-10 relative animate-in slide-in-from-bottom-10 duration-300 shadow-2xl">
+      <button onClick={onClose} className="absolute top-8 right-10 text-2xl font-black opacity-20 hover:opacity-100 transition-opacity">&times;</button>
+      <h2 className="text-xs font-black uppercase tracking-[0.3em] mb-10 text-[#002a8f] border-b border-slate-100 pb-4">{title}</h2>
       {children}
     </div>
   </div>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle, Loader2, Landmark } from 'lucide-react';
 
 interface Account {
-  id: string; // Internal state uses 'id'
-  _id?: string; // MongoDB original field
+  id: string;
+  _id?: string;
   type: string;
   balance: number;
   name: string;
@@ -20,55 +20,51 @@ const Withdraw: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // FETCH ACCOUNTS ON LOAD
-// Inside Withdraw.tsx
-
-useEffect(() => {
-  const fetchAccounts = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      const response = await fetch(`https://bluemarble.onrender.com/api/auth/accounts`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && Array.isArray(data)) {
-        const cleanedAccounts = data.map((acc: any) => ({
-          ...acc,
-          // Force use of the string 'id' shown in your object
-          id: acc.id || acc._id, 
-          balance: typeof acc.balance === 'string' 
-            ? parseFloat(acc.balance.replace(/[^\d.-]/g, '')) 
-            : acc.balance
-        }));
-
-        setAccounts(cleanedAccounts);
-
-        // AUTO-SELECT for single-account users
-        if (cleanedAccounts.length > 0) {
-          setSelectedAccount(cleanedAccounts[0]);
-        }
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
       }
-    } catch (err) {
-      setError('Connection failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  fetchAccounts();
-}, []);
+      try {
+        const response = await fetch(`https://bluemarble.onrender.com/api/auth/accounts`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && Array.isArray(data)) {
+          const cleanedAccounts = data.map((acc: any) => ({
+            ...acc,
+            id: acc.id || acc._id, 
+            balance: typeof acc.balance === 'string' 
+              ? parseFloat(acc.balance.replace(/[^\d.-]/g, '')) 
+              : acc.balance
+          }));
+
+          setAccounts(cleanedAccounts);
+          if (cleanedAccounts.length > 0) {
+            setSelectedAccount(cleanedAccounts[0]);
+          }
+        }
+      } catch (err) {
+        setError('Security connection failed.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccounts();
+  }, [navigate]);
 
   const handleWithdraw = async () => {
     const token = localStorage.getItem('token');
     const value = parseFloat(amount);
 
-    // 2. Validation
     if (!selectedAccount || !value || value <= 0) {
-      setError('Please enter a valid amount and select an account.');
+      setError('Enter a valid amount and select an origin account.');
       return;
     }
 
@@ -76,15 +72,14 @@ useEffect(() => {
     setError(null);
 
     try {
-      // 3. Updated fetch with Authorization Header
       const response = await fetch('https://bluemarble.onrender.com/api/withdraw', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Fixed 401 Unauthorized
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          accountId: selectedAccount.id, // Ensure this matches the ID string in MongoDB
+          accountId: selectedAccount.id,
           amount: value
         }),
       });
@@ -92,10 +87,9 @@ useEffect(() => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(`R${value.toFixed(2)} withdrawn from ${selectedAccount.name}`);
-        
-        // 4. Sync Local UI State
+        setSuccess(`R${value.toFixed(2)} successfully withdrawn from ${selectedAccount.name}`);
         const updatedBalance = data.newBalance;
+        
         setAccounts(prev => prev.map(acc => 
           acc.id === selectedAccount.id ? { ...acc, balance: updatedBalance } : acc
         ));
@@ -104,93 +98,120 @@ useEffect(() => {
         setAmount('');
         setTimeout(() => setSuccess(null), 4000);
       } else {
-        // Handle specific error messages from your withdrawals.ts
-        setError(data.error || 'Withdrawal declined.');
+        setError(data.error || 'Transaction declined by issuer.');
       }
     } catch (err) {
-      setError('Connection error. Try again later.');
+      setError('Connection timeout. Try again later.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#052ce0]">
-      <Loader2 className="w-12 h-12 text-white animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-[#002a8f]">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-10 h-10 text-white animate-spin opacity-50" />
+        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Accessing Ledger</p>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen w-full pb-32" style={{ background: "linear-gradient(to bottom right, #052ce0, #ADE8F4)" }}>
+    <div className="min-h-screen w-full bg-[#002a8f] text-white selection:bg-white selection:text-[#002a8f]">
       {/* HEADER */}
-      <div className="flex items-center gap-4 px-6 py-8 max-w-4xl mx-auto">
-        <button onClick={() => navigate('/dashboard')} className="p-3 bg-white/20 rounded-full text-white hover:bg-white/40">
+      <div className="flex items-center justify-between px-6 py-12 max-w-4xl mx-auto">
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="p-4 bg-white/10 backdrop-blur-xl rounded-[1.5rem] border border-white/10 hover:bg-white/20 transition-all active:scale-90"
+        >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold text-white">Withdraw Funds</h1>
+        <div className="text-right">
+          <h1 className="text-2xl font-black uppercase tracking-tighter">Withdraw</h1>
+          <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Liquidate Assets</p>
+        </div>
       </div>
 
-      <main className="space-y-8 px-6 max-w-4xl mx-auto">
+      <main className="space-y-10 px-6 max-w-4xl mx-auto pb-32">
         {/* ACCOUNT SELECTOR */}
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-          {accounts.map((acc) => (
-            <button
-              key={acc.id}
-              onClick={() => { setSelectedAccount(acc); setError(null); }}
-              className={`min-w-[280px] p-6 rounded-[2.5rem] border transition-all text-left ${
-                selectedAccount?.id === acc.id 
-                  ? 'bg-white border-white scale-105 shadow-2xl' 
-                  : 'bg-white/10 border-white/20 text-white'
-              }`}
-            >
-              <p className={`text-[10px] font-black uppercase tracking-widest ${selectedAccount?.id === acc.id ? 'text-[#052ce0]/60' : 'opacity-60'}`}>
-                {acc.type}
-              </p>
-              <h3 className={`text-2xl font-bold mt-1 ${selectedAccount?.id === acc.id ? 'text-[#052ce0]' : 'text-white'}`}>
-                R {acc.balance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
-              </h3>
-              <p className={`text-[12px] mt-2 ${selectedAccount?.id === acc.id ? 'text-[#052ce0]/40' : 'opacity-40'}`}>
-                {acc.name}
-              </p>
-            </button>
-          ))}
+        <div className="space-y-4">
+          <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] ml-6">Select Source</h3>
+          <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide">
+            {accounts.map((acc) => (
+              <button
+                key={acc.id}
+                onClick={() => { setSelectedAccount(acc); setError(null); }}
+                className={`min-w-[280px] p-8 rounded-[3rem] border transition-all text-left relative overflow-hidden ${
+                  selectedAccount?.id === acc.id 
+                    ? 'bg-white border-white scale-105 shadow-2xl' 
+                    : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                }`}
+              >
+                {selectedAccount?.id === acc.id && (
+                  <div className="absolute -right-4 -top-4 w-20 h-20 bg-[#002a8f]/5 rounded-full blur-2xl" />
+                )}
+                <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${selectedAccount?.id === acc.id ? 'text-[#002a8f]/40' : 'text-white/40'}`}>
+                  {acc.type}
+                </p>
+                <h3 className={`text-2xl font-black mt-2 tracking-tighter ${selectedAccount?.id === acc.id ? 'text-[#002a8f]' : 'text-white'}`}>
+                  R {acc.balance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+                </h3>
+                <div className="flex items-center gap-2 mt-4">
+                  <Landmark size={12} className={selectedAccount?.id === acc.id ? 'text-[#002a8f]/30' : 'text-white/20'} />
+                  <p className={`text-[10px] font-bold uppercase tracking-tight ${selectedAccount?.id === acc.id ? 'text-[#002a8f]/60' : 'text-white/40'}`}>
+                    {acc.name}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* INPUT CARD */}
-        <div className="bg-white/20 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 shadow-2xl space-y-6">
-          <div className="space-y-2">
-            <label className="text-[12px] font-black text-white uppercase tracking-widest ml-2">Amount to Withdraw</label>
+        <div className="bg-white/5 backdrop-blur-2xl p-10 rounded-[3.5rem] border border-white/10 shadow-2xl space-y-8 relative overflow-hidden">
+          <div className="absolute -left-24 -bottom-24 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] ml-4">Disbursement Amount</label>
             <div className="relative">
-              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-[#052ce0]">R</span>
+              <span className="absolute left-8 top-1/2 -translate-y-1/2 text-2xl font-black text-white/20">R</span>
               <input
                 type="number"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="w-full bg-white/40 border-2 border-white/10 rounded-[2rem] py-6 pl-12 pr-6 text-3xl font-bold text-white outline-none placeholder:text-white/40 focus:bg-white/50 transition-all"
+                className="w-full bg-white/10 border-2 border-white/5 rounded-[2.5rem] py-8 pl-16 pr-8 text-4xl font-black text-white outline-none focus:border-white/20 focus:bg-white/15 transition-all placeholder:text-white/5"
                 placeholder="0.00"
               />
             </div>
           </div>
 
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/40 text-red-100 p-4 rounded-2xl flex items-center gap-3 animate-pulse">
-              <AlertCircle size={20}/> {error}
-            </div>
-          )}
-          
-          {success && (
-            <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-100 p-4 rounded-2xl flex items-center gap-3">
-              <CheckCircle2 size={20}/> {success}
-            </div>
-          )}
+          <div className="space-y-4">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-[1.5rem] flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                <AlertCircle size={20} className="shrink-0"/> 
+                <p className="text-[11px] font-black uppercase tracking-wide">{error}</p>
+              </div>
+            )}
+            
+            {success && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-5 rounded-[1.5rem] flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                <CheckCircle2 size={20} className="shrink-0"/> 
+                <p className="text-[11px] font-black uppercase tracking-wide">{success}</p>
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleWithdraw}
             disabled={isSubmitting || !amount}
-            className="w-full bg-[#052ce0] text-white py-6 rounded-[2rem] font-black text-xl flex justify-center items-center gap-3 hover:bg-[#0424b9] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
+            className="w-full bg-white text-[#002a8f] py-7 rounded-[2.5rem] font-black text-xs uppercase tracking-[0.3em] flex justify-center items-center gap-3 hover:scale-[1.02] transition-all active:scale-[0.98] disabled:opacity-20 disabled:cursor-not-allowed shadow-2xl"
           >
-            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Confirm Withdrawal'}
+            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Authorize Withdrawal'}
           </button>
+
+          <p className="text-center text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">
+            Transactions are subject to security verification and daily limits.
+          </p>
         </div>
       </main>
     </div>

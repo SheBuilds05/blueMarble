@@ -21,11 +21,14 @@ const BottomNav = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // DASHBOARD COLOR CONSTANT
+  const DASHBOARD_BLUE = "#052ce0";
+
   const quickActions = [
-    { label: 'Deposit', icon: <ArrowDownCircle size={20} />, path: '/deposit', color: 'bg-emerald-500' },
-    { label: 'Withdraw', icon: <ArrowUpCircle size={20} />, path: '/withdraw', color: 'bg-blue-600' },
-    { label: 'Pay Bills', icon: <Banknote size={20} />, path: '/pay', color: 'bg-indigo-600' },
-    { label: 'Buy', icon: <ShoppingBag size={20} />, path: '/buy', color: 'bg-violet-600' },
+    { label: 'Deposit', icon: <ArrowDownCircle size={20} />, path: '/deposit' },
+    { label: 'Withdraw', icon: <ArrowUpCircle size={20} />, path: '/withdraw' },
+    { label: 'Pay Bills', icon: <Banknote size={20} />, path: '/pay' },
+    { label: 'Buy', icon: <ShoppingBag size={20} />, path: '/buy' },
   ];
 
   const handleAction = (path: string) => {
@@ -33,11 +36,6 @@ const BottomNav = () => {
     navigate(path);
   };
 
-  /**
-   * CORRECTED NAV ITEMS:
-   * - ACCOUNT now goes to '/accounts'
-   * - CARDS now goes to '/cards'
-   */
   const navItems = [
     { path: '/dashboard', icon: <Wallet size={22} />, label: 'HOME' },
     { path: '/accounts', icon: <User size={22} />, label: 'ACCOUNT' },
@@ -52,25 +50,34 @@ const BottomNav = () => {
       {showMenu && (
         <div 
           ref={menuRef}
-          className="mb-6 w-[92%] max-w-md bg-white/90 backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.4)] border border-white/40 pointer-events-auto animate-in fade-in slide-in-from-bottom-10 duration-300"
+          className="mb-6 w-[92%] max-w-md backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.4)] border border-white/40 pointer-events-auto animate-in fade-in slide-in-from-bottom-10 duration-300"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
         >
           <div className="flex justify-between items-center mb-6 px-2">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#052ce0]">Quick Actions</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: DASHBOARD_BLUE }}>
+              Quick Actions
+            </h3>
             <button onClick={() => setShowMenu(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
               <X size={18} />
             </button>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             {quickActions.map((action) => (
               <button
                 key={action.label}
                 onClick={() => handleAction(action.path)}
-                className="flex items-center gap-4 p-4 rounded-3xl bg-white/50 border border-white/80 hover:bg-[#052ce0] hover:text-white transition-all group shadow-sm active:scale-95"
+                className="flex items-center gap-4 p-4 rounded-3xl transition-all group shadow-md active:scale-95 border border-white/20"
+                style={{ backgroundColor: DASHBOARD_BLUE }} // BUTTON IS NOW DASHBOARD BLUE
               >
-                <div className={`p-2 rounded-2xl ${action.color} text-white group-hover:bg-white group-hover:text-[#052ce0] transition-colors`}>
+                {/* Icon Container with slight contrast */}
+                <div className="p-2 rounded-2xl bg-white/20 text-white group-hover:bg-white group-hover:text-[#052ce0] transition-colors">
                   {action.icon}
                 </div>
-                <span className="text-sm font-bold tracking-tight">{action.label}</span>
+                {/* FONT IS NOW VISIBLE WHITE ON BLUE BACKGROUND */}
+                <span className="text-sm font-black tracking-tight text-white uppercase">
+                  {action.label}
+                </span>
               </button>
             ))}
           </div>
@@ -79,7 +86,6 @@ const BottomNav = () => {
 
       {/* Navigation Bar */}
       <nav className="bg-white/95 backdrop-blur-2xl border border-white/40 h-20 w-[92%] max-w-md rounded-[2.5rem] flex justify-between items-center px-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)] relative pointer-events-auto">
-        
         <div className="flex flex-1 justify-around items-center h-full">
           <CustomNavLink item={navItems[0]} />
           <CustomNavLink item={navItems[1]} />
@@ -89,7 +95,8 @@ const BottomNav = () => {
         <div className="relative -top-8 mx-2">
           <button 
             onClick={() => setShowMenu(!showMenu)}
-            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_20px_rgba(5,46,192,0.5)] border-4 border-white transition-all duration-500 transform ${showMenu ? 'bg-slate-800 rotate-45' : 'bg-[#052ce0]'}`}
+            className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_20px_rgba(5,46,192,0.5)] border-4 border-white transition-all duration-500 transform ${showMenu ? 'bg-slate-800 rotate-45' : ''}`}
+            style={{ backgroundColor: !showMenu ? DASHBOARD_BLUE : undefined }}
           >
             <Plus size={32} color="white" strokeWidth={3} />
           </button>
