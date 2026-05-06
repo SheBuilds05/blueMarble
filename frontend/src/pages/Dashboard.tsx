@@ -201,9 +201,12 @@ const Dashboard: React.FC = () => {
                     <p className="text-3xl font-black text-white tracking-tighter">
                         R {acc.balance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
                     </p>
-                    <p className="text-[9px] text-emerald-400 font-black uppercase tracking-widest md:text-right flex items-center gap-1 md:justify-end">
-                      <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" /> Available Balance
-                    </p>
+                   <div className="flex items-center gap-2">
+  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+  <span className="text-[9px] text-emerald-400 font-black uppercase tracking-widest">
+    Active Now
+  </span>
+</div>
                   </div>
                   <div className="bg-white/5 p-3 rounded-full hidden md:block group-hover:bg-white group-hover:text-[#002a8f] transition-all">
                     <ChevronRight size={20} />

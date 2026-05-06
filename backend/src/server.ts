@@ -8,6 +8,7 @@ import profileRoutes from './routes/profile';
 import buy from './routes/buy';
 import notification from './routes/notifications'
 import accountRoutes from './routes/accountRoutes';
+import cardRoutes from './routes/cardRoutes'; //
 
 dotenv.config();
 

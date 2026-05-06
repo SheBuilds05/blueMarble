@@ -26,9 +26,14 @@
     "@tailwindcss/vite": "^4.2.2",
     "autoprefixer": "^10.5.0",
     "axios": "^1.15.0",
+    "cors": "^2.8.6",
     "lucide-react": "^1.8.0",
     "postcss": "^8.5.9",
     "react-router-dom": "^7.14.0",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
   }
 }
