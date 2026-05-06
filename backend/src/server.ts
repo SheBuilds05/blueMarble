@@ -6,43 +6,60 @@ import authRoutes from './routes/authRoutes';
 import withdrawRoutes from './routes/withdrawals';
 import profileRoutes from './routes/profile';
 import buy from './routes/buy';
-import notification from './routes/notifications'
+import notification from './routes/notifications';
 import accountRoutes from './routes/accountRoutes';
-import cardRoutes from './routes/cardRoutes'; //
+import cardRoutes from './routes/cardRoutes';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- STEP 1: MIDDLEWARE (MUST COME FIRST) ---
-app.use(cors({
-  origin: 'http://localhost:5173', // Be specific to your Vite frontend
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Allowed frontend URLs
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://blue-marble-three.vercel.app'
+];
 
-app.use(express.json()); // Essential for reading req.body in createAccount
+// CORS
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests like Postman or server-to-server
+      if (!origin) return callback(null, true);
 
-// --- STEP 2: ROUTES ---
-// Register accountRoutes here AFTER middleware
-app.use('/api/auth', accountRoutes); 
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
+app.use(express.json());
+
+// ROUTES
+app.use('/api/auth', accountRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/withdraw', withdrawRoutes);
 app.use('/api/profile', profileRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/notifications', notification)
-app.use('/api/buy', buy)
-app.use('/api/cards', cardRoutes); //
-// 3. Database Connection
+app.use('/api/notifications', notification);
+app.use('/api/buy', buy);
+app.use('/api/cards', cardRoutes);
+
+// Database Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error('❌ MONGODB_URI is not defined in .env file');
 }
 
-mongoose.connect(MONGODB_URI)
+mongoose
+  .connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Successfully connected to MongoDB!');
     app.listen(PORT, () => {
