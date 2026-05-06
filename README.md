@@ -73,9 +73,3 @@ The system supports user authentication, deposits, withdrawals, and transaction 
 ## 📥 Clone Repository
 ```bash
 git clone https://github.com/SheBuilds05/blueMarble.git
-
-
-
-cd backend
-npm install
-node index.js
