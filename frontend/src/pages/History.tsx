@@ -1,136 +1,152 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight, ArrowDownLeft, Filter, ChevronLeft, X, FileText, TrendingUp, TrendingDown } from 'lucide-react';
-import BottomNav from '../components/BottomNav';
+import { ArrowUpRight, ArrowDownLeft, ChevronLeft, Loader2, FileText } from 'lucide-react';
+
+// Locally defined interface to ensure zero import errors
+interface Transaction {
+  _id: string;
+  description: string;
+  amount: number;
+  date: string;
+  type: 'deposit' | 'withdraw' | 'transfer';
+  category: string;
+}
 
 const History: React.FC = () => {
   const navigate = useNavigate();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 });
 
-  const transactions = [
-    { id: 1, desc: 'Salary Deposit', amt: '+ R 32,000.00', date: '12 April 2026', type: 'in', category: 'Income' },
-    { id: 2, desc: 'Rent Payment', amt: '- R 8,500.00', date: '01 April 2026', type: 'out', category: 'Housing' },
-    { id: 3, desc: 'Grocery Store', amt: '- R 1,200.00', date: '28 March 2026', type: 'out', category: 'Shopping' },
-    { id: 4, desc: 'Electricity Purchase', amt: '- R 500.00', date: '25 March 2026', type: 'out', category: 'Utilities' },
-    { id: 5, desc: 'Netflix Subscription', amt: '- R 199.00', date: '20 March 2026', type: 'out', category: 'Entertainment' },
-  ];
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        // Fetching from your actual API
+        const response = await fetch('http://localhost:5000/api/transactions/history');
+        const data: Transaction[] = await response.json();
+        
+        setTransactions(data);
+
+        // Calculate everything dynamically from the live data
+        const income = data
+          .filter((t: Transaction) => t.type === 'deposit')
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+        
+        const expenses = data
+          .filter((t: Transaction) => t.type !== 'deposit')
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+
+        setTotals({ 
+          income, 
+          expenses, 
+          balance: income - expenses 
+        });
+      } catch (error) {
+        console.error("Error fetching live data:", error);
+        setTransactions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, []);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', { 
+      style: 'currency', 
+      currency: 'ZAR' 
+    }).format(amount);
+  };
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-blue-50">
+      <Loader2 className="w-10 h-10 text-[#052ce0] animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-32 overflow-x-hidden">
-      {/* Signature High-Contrast Header */}
-      <nav className="bg-[#002a8f] p-8 pb-16 rounded-b-[3.5rem] shadow-2xl relative overflow-hidden">
-        {/* Decorative Brand Element */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl" />
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
         
-        <div className="max-w-lg mx-auto flex justify-between items-center relative z-10">
+        {/* HEADER & NAV */}
+        <div className="flex items-center justify-between mb-6">
           <button 
             onClick={() => navigate(-1)} 
-            className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white border border-white/10"
+            className="p-2 bg-white rounded-full shadow-sm hover:bg-blue-600 group transition-all"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft className="text-blue-600 group-hover:text-white" />
           </button>
-          
-          <div className="text-center">
-            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-1">Archive</p>
-            <h1 className="font-black text-white text-2xl uppercase tracking-tighter">Activity</h1>
-          </div>
 
           <button 
-            onClick={() => navigate('/dashboard')}
-            className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white border border-white/10"
+            onClick={() => navigate('/full-statement')} 
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all text-sm"
           >
-            <X size={24} />
+            <FileText size={16} />
+            <span>Full Statement</span>
           </button>
         </div>
-      </nav>
 
-      <main className="px-6 max-w-lg mx-auto -mt-10 relative z-20">
-        {/* Balance Hero Card */}
-        <div className="bg-white rounded-[3rem] p-8 shadow-[0_20px_50px_rgba(0,42,143,0.08)] border border-slate-100 mb-8">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Current Holdings</p>
-          <h2 className="text-4xl font-black text-[#000000] tracking-tighter mb-8 leading-none">R 45,670.89</h2>
+        {/* BALANCE SUMMARY CARD */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm border mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Available Balance</p>
+              <h2 className="text-4xl font-black text-slate-800 tracking-tight">{formatCurrency(totals.balance)}</h2>
+            </div>
+            <div className="flex gap-3">
+              <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 text-center">
+                <p className="text-[10px] text-emerald-600 font-bold uppercase">Income</p>
+                <p className="text-emerald-700 font-bold">+{formatCurrency(totals.income)}</p>
+              </div>
+              <div className="bg-red-50 px-4 py-2 rounded-xl border border-red-100 text-center">
+                <p className="text-[10px] text-red-600 font-bold uppercase">Expenses</p>
+                <p className="text-red-700 font-bold">-{formatCurrency(totals.expenses)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RECENT ACTIVITY LIST */}
+        <div className="bg-white rounded-3xl shadow-sm border overflow-hidden">
+          <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+            <h3 className="font-bold text-slate-800">Recent Activity</h3>
+            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">
+              Live Feed
+            </span>
+          </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-emerald-50/50 p-4 rounded-[1.5rem] flex items-center gap-3">
-              <div className="text-emerald-500 bg-white p-2 rounded-xl shadow-sm">
-                <TrendingUp size={16} />
-              </div>
-              <div>
-                <p className="text-[8px] font-black text-emerald-600/60 uppercase tracking-wider">Inflow</p>
-                <p className="text-sm font-black text-emerald-700 tracking-tight">+R 32k</p>
-              </div>
-            </div>
-            <div className="bg-red-50/50 p-4 rounded-[1.5rem] flex items-center gap-3">
-              <div className="text-red-500 bg-white p-2 rounded-xl shadow-sm">
-                <TrendingDown size={16} />
-              </div>
-              <div>
-                <p className="text-[8px] font-black text-red-600/60 uppercase tracking-wider">Outflow</p>
-                <p className="text-sm font-black text-red-700 tracking-tight">-R 10k</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters and List Title */}
-        <div className="flex justify-between items-center mb-6 px-2">
-          <div>
-            <h3 className="text-xs font-black text-[#000000] uppercase tracking-widest">Recent Activity</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">April 2026</p>
-          </div>
-          <button className="p-3 bg-white border border-slate-100 rounded-2xl text-[#002a8f] shadow-sm active:scale-95 transition-all">
-            <Filter size={18} />
-          </button>
-        </div>
-
-        {/* Transactions List */}
-        <div className="space-y-3">
-          {transactions.map((item) => (
-            <div 
-              key={item.id} 
-              className="bg-white rounded-[2.2rem] p-5 flex items-center justify-between border border-slate-50 shadow-sm hover:shadow-md transition-shadow cursor-pointer active:scale-[0.98]"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
-                  item.type === 'in' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
-                }`}>
-                  {item.type === 'in' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-black text-[#000000] leading-none mb-1 uppercase tracking-tight">{item.desc}</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black text-[#002a8f] uppercase tracking-widest">{item.category}</span>
-                    <span className="text-[9px] font-bold text-slate-300">•</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{item.date}</span>
+          <div className="divide-y max-h-[500px] overflow-y-auto custom-scrollbar">
+            {transactions.length > 0 ? (
+              transactions.map((item) => (
+                <div key={item._id} className="flex items-center justify-between p-5 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-lg ${item.type === 'deposit' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                      {item.type === 'deposit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800 leading-tight">{item.description}</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter mt-1">
+                        {item.category} • {new Date(item.date).toLocaleDateString('en-ZA')}
+                      </p>
+                    </div>
                   </div>
+                  <p className={`font-black text-lg ${item.type === 'deposit' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                    {item.type === 'deposit' ? '+' : '-'} {formatCurrency(item.amount)}
+                  </p>
                 </div>
+              ))
+            ) : (
+              <div className="p-20 text-center">
+                <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="text-slate-300" size={32} />
+                </div>
+                <p className="text-slate-400 font-bold italic">No transactions found in your database.</p>
+                <p className="text-slate-300 text-sm">New activity will appear here automatically.</p>
               </div>
-
-              <div className="text-right">
-                <p className={`text-sm font-black tracking-tighter ${
-                  item.type === 'in' ? 'text-emerald-600' : 'text-[#000000]'
-                }`}>
-                  {item.amt}
-                </p>
-                <p className="text-[8px] font-black text-slate-300 uppercase tracking-[0.1em]">Verified</p>
-              </div>
-            </div>
-          ))}
+            )}
+          </div>
         </div>
-
-        {/* Statement Action */}
-        <button className="w-full mt-8 py-6 bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] flex items-center justify-center gap-3 text-slate-400 hover:border-[#002a8f]/30 hover:text-[#002a8f] transition-all group">
-          <FileText size={18} className="group-hover:animate-bounce" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Request Full Statement</span>
-        </button>
-
-        {/* Brand Slogan */}
-        <div className="text-center mt-12 mb-10 opacity-30">
-          <p className="text-[10px] font-black text-[#000000] uppercase tracking-[0.4em]">blueMarble Archive</p>
-        </div>
-      </main>
-
-      <BottomNav />
+      </div>
     </div>
   );
 };

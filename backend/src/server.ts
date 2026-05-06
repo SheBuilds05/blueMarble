@@ -34,6 +34,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notification)
 app.use('/api/buy', buy)
+app.use('/api/cards', cardRoutes); //
 // 3. Database Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
