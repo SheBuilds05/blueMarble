@@ -1,37 +1,78 @@
-**OpenBank Cloud Simulation**
+# 🚀 OpenBank Cloud Simulation
 
-A cloud-native, full-stack banking system developed as part of the IBM Full Stack Software Developer Professional Certificate. This project simulates a realistic banking environment, applying modern DevOps practices, container orchestration, and secure API development.
+A cloud-native, full-stack banking system developed as part of a full-stack software development and DevOps learning project. The application simulates a real-world banking environment with secure authentication, transaction handling, and cloud deployment using modern DevOps practices.
 
-🚀 **Project Overview**
+---
 
-The OpenBank Cloud Simulation is a comprehensive four-week project focused on building and deploying a resilient, scalable banking application. The system utilizes a modern tech stack to handle user authentication, financial transactions, and real-time monitoring.
+# 🧠 Project Overview
 
+The OpenBank Cloud Simulation is a full-stack banking application designed to demonstrate cloud-native development, containerization, and deployment using OpenShift and Render.
 
-Core Features
+The system supports user authentication, deposits, withdrawals, and transaction tracking while being deployed in a scalable cloud environment.
 
-Functional Banking UI: 
-Dedicated interfaces for user login, deposits, withdrawals, and transaction history.
-Secure Backend API: RESTful services for account management and balance verification.
-Cloud-Native Architecture: Fully containerized services orchestrated via Kubernetes/OpenShift.
-CI/CD Pipeline: Automated build, test, and deployment workflows using GitHub Actions.
-Observability: Real-time metrics collection and visual dashboards for system health.
+---
 
-**Technologies**
+# ✨ Core Features
 
-React, Tailwind
-Node.js (Express)
-MongoDB
+## 🖥️ Functional Banking UI
+- User login authentication
+- Deposit and withdrawal functionality
+- Transaction history view
+- Responsive React frontend
 
-Docker, Kubernetes, OpenShift, GitHub Actions
-Prometheus, Grafana
-Postman
+---
 
+## 🔐 Secure Backend API
+- Node.js (Express) REST API
+- JWT-based authentication (if implemented)
+- MongoDB database integration
+- Account and transaction management
 
-🔧 **Installation & Usage**
+---
 
+## ☁️ Cloud-Native Architecture
+- Docker containerized services
+- Kubernetes / OpenShift deployment
+- Knative serverless frontend service
+- Scalable backend API hosting
 
-Clone the Repository                                git clone https://github.com/SheBuilds05/blueMarble/edit/main
+---
 
-Local Development (Docker Compose)                  docker-compose up --build
+## 🔄 Deployment Workflow
+- Git-based version control
+- Manual CI/CD (build → deploy → update)
+- Separate frontend and backend deployments
 
-Kubernetes Deployment                               kubectl apply -f ./kubernetes-manifests/
+---
+
+# 🛠️ Technologies Used
+
+## Frontend
+- React
+- Vite
+- Tailwind CSS
+
+## Backend
+- Node.js (Express)
+- MongoDB
+- Mongoose
+
+## DevOps & Cloud
+- Docker
+- Kubernetes / OpenShift
+- Render (Backend Hosting)
+- GitHub
+
+## API Testing
+- Postman
+
+---
+
+# 🔧 Installation & Usage
+
+## 📥 Clone Repository
+```bash
+git clone https://github.com/SheBuilds05/blueMarble.git
+
+---
+Docker Image Creation
