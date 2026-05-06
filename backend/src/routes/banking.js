@@ -3,7 +3,10 @@ const router = express.Router();
 const { User, Transaction } = require('../models/User');
 
 // GET: Fetch all accounts for a specific user
+<<<<<<< HEAD
 // Matches: fetch(`http://localhost:5000/api/accounts/${userId}`)
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 router.get('/accounts/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -17,7 +20,10 @@ router.get('/accounts/:userId', async (req, res) => {
 });
 
 // GET: Fetch transactions for a specific account
+<<<<<<< HEAD
 // Matches: fetch(`http://localhost:5000/api/transactions/${accountId}`)
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 router.get('/transactions/:accountId', async (req, res) => {
   try {
     const transactions = await Transaction.find({ 

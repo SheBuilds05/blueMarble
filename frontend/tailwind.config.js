@@ -1,8 +1,16 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+/* eslint-env node */
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -13,3 +21,18 @@ export default {
   },
   plugins: [],
 }
+
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        blueMarble: {
+          primary: '#052ce0',
+          dark: '#000919',
+        }
+      }
+    }
+  }
+}
+

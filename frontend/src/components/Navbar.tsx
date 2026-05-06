@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,22 +16,31 @@ import {
   Menu, 
   X 
 } from 'lucide-react';
+<<<<<<< HEAD
 =======
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 >>>>>>> sibongokuhle
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   if (!user) return null;
+<<<<<<< HEAD
 =======
 >>>>>>> sibongokuhle
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 
   const handleLogout = () => {
     logout();
@@ -36,6 +48,9 @@ const Navbar = () => {
   };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { name: 'Deposit', path: '/deposit', icon: <ArrowDownCircle size={18} /> },
@@ -136,6 +151,7 @@ const Navbar = () => {
           </div>
         </div>
       )}
+<<<<<<< HEAD
 =======
   if (!user) return null;
 
@@ -151,12 +167,18 @@ const Navbar = () => {
         <button onClick={handleLogout} className="text-sm text-red-500 hover:text-red-600">Logout</button>
       </div>
 >>>>>>> sibongokuhle
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
     </nav>
   );
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 export default Navbar;
 =======
 export default Navbar;
 >>>>>>> sibongokuhle
+=======
+export default Navbar;
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35

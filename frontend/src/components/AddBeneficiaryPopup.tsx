@@ -32,7 +32,11 @@ const AddBeneficiaryPopup: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     const token = localStorage.getItem('token');
 
     try {
+<<<<<<< HEAD
       const response = await fetch('http://localhost:5000/api/auth/beneficiaries', {
+=======
+      const response = await fetch('https://bluemarble.onrender.com/api/auth/beneficiaries', {
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

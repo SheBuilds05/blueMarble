@@ -52,3 +52,4 @@ export const buyVoucher = (voucherType: string, amount: number, email: string) =
   api.post('/buy/voucher', { voucherType, amount, email });
 
 export default api;
+

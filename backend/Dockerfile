@@ -1,23 +1,19 @@
-# Use Node image
 FROM node:18
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy rest of code
 COPY . .
 
-# Build TypeScript
 RUN npm run build
 
-# Expose port
+# OPENSHIFT SECURITY SETUP
+RUN chown -R :0 /app && chmod -R g=u /app
+
+USER node
+
 EXPOSE 5000
 
-# Run app
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/server.js"]
