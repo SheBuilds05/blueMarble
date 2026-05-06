@@ -18,7 +18,8 @@ const PORT = process.env.PORT || 5000;
 // Allowed frontend URLs
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://blue-marble-three.vercel.app'
+  'https://blue-marble-three.vercel.app',
+  'https://bluemarble-frontend10-nokulungaokuhle43-dev.apps.rm1.0a51.p1.openshiftapps.com'
 ];
 
 // CORS
@@ -39,7 +40,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-
+app.options('*', cors());
 app.use(express.json());
 
 // ROUTES
