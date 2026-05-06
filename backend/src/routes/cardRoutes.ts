@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import User from '../models/User.js'; // Import User instead of Card
+import User from '../models/Users.js'; // Import User instead of Card
 
 const router = Router();
 
