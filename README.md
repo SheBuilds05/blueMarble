@@ -1,4 +1,4 @@
-# 🚀 OpenBank Cloud Simulation
+# 🚀 BlueMarble Cloud Simulation
 
 A cloud-native, full-stack banking system developed as part of a full-stack software development and DevOps learning project. The application simulates a real-world banking environment with secure authentication, transaction handling, and cloud deployment using modern DevOps practices.
 
@@ -6,7 +6,7 @@ A cloud-native, full-stack banking system developed as part of a full-stack soft
 
 # 🧠 Project Overview
 
-The OpenBank Cloud Simulation is a full-stack banking application designed to demonstrate cloud-native development, containerization, and deployment using OpenShift and Render.
+The BlueMarble development, containerization, and deployment using OpenShift and Render.
 
 The system supports user authentication, deposits, withdrawals, and transaction tracking while being deployed in a scalable cloud environment.
 
