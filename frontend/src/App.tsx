@@ -13,6 +13,7 @@ import Buy from './pages/Buy';
 import Deposit from './pages/Deposit';
 import Notifications from './pages/Notifications';
 import Cards from './pages/Cards';
+import FullStatement from './pages/FullStatement';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/buy" element={<Buy />} />
           <Route path="/deposit" element={<Deposit />} />
+          <Route path="/full-statement" element={<FullStatement />} />
           <Route path="/notification" element={<Notifications />} />
           <Route path="/cards" element={<Cards />} />
         </Routes>
