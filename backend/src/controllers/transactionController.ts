@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Transaction from '../models/Transactions';
+import {Transaction} from '../models/Transaction';
 
 export const getTransactions = async (req: Request, res: Response) => {
   try {

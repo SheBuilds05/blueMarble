@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Account from '../models/Account';
-import Transaction from '../models/Transaction';
+import { Transaction } from '../models/Transaction';
 
 export const getDashboardSummary = async (req: Request, res: Response) => {
   try {

@@ -1,153 +1,116 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-// This now perfectly matches your Transaction.ts model
-interface Transaction {
-  _id: string;
-  userId: string;
-  type: 'deposit' | 'withdraw' | 'transfer';
-  amount: number;
-  description: string;
-  category: 'Groceries' | 'Rent' | 'Salary' | 'Entertainment' | 'Other';
-  date: string;
-}
+// Import the live helpers we created
+import { fetchLiveTransactions, calculateBalanceFromData, Transaction } from '../utils/bankData';
 
 const FullStatement: React.FC = () => {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const [balance, setBalance] = useState(0);
+
   useEffect(() => {
-    fetch('http://localhost:5000/api/transactions/history')
-      .then(res => res.json())
-      .then(data => {
-        // Debugging: This will show in your browser console (F12) 
-        // to verify if 'amount' exists in the objects
-        console.log("Statement Data Received:", data);
+    const loadLiveStatement = async () => {
+      try {
+        // Use the reusable fetcher from bankData.ts
+        const data = await fetchLiveTransactions();
         setTransactions(data);
-      })
-      .catch(err => console.error("Statement fetch error:", err))
-      .finally(() => setLoading(false));
+        
+        // Use the reusable calculator from bankData.ts
+        const total = calculateBalanceFromData(data);
+        setBalance(total);
+      } catch (error) {
+        console.error("Error loading live statement:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLiveStatement();
   }, []);
 
-  const handlePrint = () => window.print();
-
-  const formatCurrency = (num: number) => 
-    new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(num || 0);
-
-  // Calculate Summary Totals
-  const totalIn = transactions
-    .filter(t => t.type === 'deposit')
-    .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
-    
-  const totalOut = transactions
-    .filter(t => t.type !== 'deposit')
-    .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-10">
-      {/* Hidden during print */}
-      <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center print:hidden">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-[#052ce0] font-bold transition-colors">
-          <ChevronLeft size={20} /> Back to History
-        </button>
+    <div className="p-6 bg-slate-50 min-h-screen">
+      <div className="max-w-4xl mx-auto">
         <button 
-          onClick={handlePrint}
-          className="flex items-center gap-2 bg-[#052ce0] text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md"
+          onClick={() => navigate(-1)} 
+          className="flex items-center text-blue-600 mb-6 font-bold hover:underline group"
         >
-          <Download size={18} /> Download PDF
+          <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" /> 
+          Back to History
         </button>
-      </div>
 
-      {/* Printable Area */}
-      <div className="max-w-4xl mx-auto bg-white p-8 md:p-16 shadow-sm print:shadow-none border border-gray-200 print:border-none rounded-sm">
-        
-        {/* Header */}
-        <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-10">
+        <div className="flex justify-between items-end mb-8">
           <div>
-            <h1 className="text-4xl font-black text-[#052ce0] italic tracking-tighter">BlueMarble</h1>
-            <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">Official Digital Statement</p>
+            <h1 className="text-3xl font-bold text-slate-800 flex items-center">
+              <FileText className="mr-3 text-blue-600" /> Full Statement
+            </h1>
+            <p className="text-slate-500">
+              Official Live Record • {new Date().toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}
+            </p>
           </div>
-          <div className="text-right">
-            <h2 className="text-lg font-bold text-gray-800 uppercase">Account Statement</h2>
-            <p className="text-xs text-gray-500 font-medium">Generated: {new Date().toLocaleDateString('en-ZA')}</p>
-          </div>
+          <button 
+            onClick={() => window.print()} 
+            className="flex items-center bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+          >
+            <Download size={18} className="mr-2" /> Download PDF
+          </button>
         </div>
 
-        {/* Account Info & Summary */}
-        <div className="grid grid-cols-2 gap-10 mb-12">
-          <div>
-            <h3 className="text-[10px] font-black text-gray-400 uppercase mb-2">Account Details</h3>
-            <p className="text-lg font-bold text-gray-800">Mathapelo</p>
-            <p className="text-sm text-gray-500">Fullstack Developer | Johannesburg</p>
+        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+          <div className="p-8 bg-[#052ce0] text-white">
+            <p className="opacity-80 uppercase text-xs font-bold tracking-widest">Net Account Balance</p>
+            <h2 className="text-4xl font-bold">
+              R {balance.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+            </h2>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg flex flex-col justify-center text-right">
-            <div className="flex justify-between text-emerald-600 mb-1">
-              <span className="text-[10px] font-bold uppercase">Deposits (+)</span>
-              <span className="font-bold">{formatCurrency(totalIn)}</span>
-            </div>
-            <div className="flex justify-between text-red-600">
-              <span className="text-[10px] font-bold uppercase">Withdrawals (-)</span>
-              <span className="font-bold">{formatCurrency(totalOut)}</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Transaction Table */}
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b border-gray-300">
-              <th className="py-3 text-left text-[10px] font-black text-gray-400 uppercase">Date</th>
-              <th className="py-3 text-left text-[10px] font-black text-gray-400 uppercase">Description</th>
-              <th className="py-3 text-left text-[10px] font-black text-gray-400 uppercase">Category</th>
-              <th className="py-3 text-right text-[10px] font-black text-gray-400 uppercase">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {transactions.length > 0 ? (
-              transactions.map((t) => (
-                <tr key={t._id} className="group">
-                  <td className="py-4 text-xs text-gray-600">
-                    {new Date(t.date).toLocaleDateString('en-ZA')}
-                  </td>
-                  <td className="py-4 text-sm font-bold text-gray-800">{t.description}</td>
-                  <td className="py-4 text-[10px] font-bold text-gray-400 uppercase">{t.category}</td>
-                  <td className={`py-4 text-right font-mono font-bold ${t.type === 'deposit' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                    {t.type === 'deposit' ? '+' : '-'} {formatCurrency(t.amount)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 border-b text-slate-400 text-xs uppercase font-bold">
+                <tr>
+                  <th className="p-5">Date</th>
+                  <th className="p-5">Description</th>
+                  <th className="p-5 text-right">Amount</th>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="py-20 text-center text-gray-400 font-medium italic">
-                  {loading ? "Accessing secure records..." : "No transaction history found for this account."}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* Signature/End Line */}
-        <div className="mt-20 pt-8 border-t border-gray-100 flex justify-between items-end">
-          <div className="text-[9px] text-gray-400 max-w-sm">
-            This statement is an official record of the BlueMarble Banking System. 
-            Issued from Johannesburg, Gauteng.
-          </div>
-          <div className="text-center">
-            <div className="w-32 border-b border-gray-400 mb-1"></div>
-            <p className="text-[9px] text-gray-400 uppercase font-bold">Authorized Signature</p>
+              </thead>
+              <tbody className="divide-y">
+                {transactions.length > 0 ? (
+                  transactions.map((t) => (
+                    <tr key={t._id} className="hover:bg-blue-50/30 transition-colors">
+                      <td className="p-5 text-slate-500 text-sm">
+                        {new Date(t.date).toLocaleDateString('en-ZA')}
+                      </td>
+                      <td className="p-5 font-bold text-slate-800">{t.description}</td>
+                      <td className={`p-5 text-right font-black ${t.type === 'deposit' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                        {t.type === 'deposit' ? '+' : '-'} R {t.amount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="p-10 text-center text-slate-400 italic">
+                      No live transaction data available in the database.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+        
+        <p className="mt-6 text-center text-xs text-slate-400 font-medium">
+          This statement is generated in real-time from your secure database records.
+        </p>
       </div>
-
-      <style>{`
-        @media print {
-          body { background: white !important; margin: 0; padding: 0; }
-          .print\\:hidden { display: none !important; }
-          .max-w-4xl { max-width: 100% !important; border: none !important; padding: 0 !important; }
-        }
-      `}</style>
     </div>
   );
 };

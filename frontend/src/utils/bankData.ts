@@ -1,21 +1,32 @@
-// src/utils/bankData.ts
-
 export interface Transaction {
-  id: number;
-  date: string;
-  desc: string;
+  _id: string;
+  description: string;
   amount: number;
-  type: 'income' | 'expense';
+  date: string;
+  type: 'deposit' | 'withdraw' | 'transfer';
+  category: string;
 }
 
-export const transactions: Transaction[] = [
-  { id: 1, date: '12 April 2026', desc: 'Salary Deposit', amount: 32000, type: 'income' },
-  { id: 2, date: '01 April 2026', desc: 'Rent Payment', amount: -8500, type: 'expense' },
-  { id: 3, date: '28 March 2026', desc: 'Grocery Store', amount: -1200, type: 'expense' },
-  { id: 4, date: '25 March 2026', desc: 'Electricity Purchase', amount: -500, type: 'expense' },
-  { id: 5, date: '20 March 2026', desc: 'Netflix Subscription', amount: -199, type: 'expense' },
-];
+/**
+ * Helper to calculate balance from any array of transactions 
+ * (Works for both History and Full Statement pages)
+ */
+export const calculateBalanceFromData = (data: Transaction[]): number => {
+  return data.reduce((acc, curr) => {
+    return curr.type === 'deposit' ? acc + curr.amount : acc - curr.amount;
+  }, 0);
+};
 
-export const calculateTotalBalance = (): number => {
-  return transactions.reduce((acc, curr) => acc + curr.amount, 0);
+/**
+ * Reusable Fetch function to get live data
+ */
+export const fetchLiveTransactions = async (): Promise<Transaction[]> => {
+  try {
+    const response = await fetch('http://localhost:5001/api/transactions/history');
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch live transactions:", error);
+    return []; // Return empty array so the app doesn't crash
+  }
 };
