@@ -1,4 +1,16 @@
 import { Router } from 'express';
+<<<<<<< HEAD
+import { getCards, toggleCardStatus } from '../controllers/cardController.js';
+const router = Router();
+
+// GET: http://localhost:5000/api/cards
+router.get('/', getCards);
+
+// PATCH: http://localhost:5000/api/cards/:cardId/status
+router.patch('/:cardId/status', toggleCardStatus);
+
+export default router;
+=======
 import User from '../models/Users.js'; // Import User instead of Card
 
 const router = Router();
@@ -37,3 +49,4 @@ router.patch('/:id/limits', async (req, res) => {
 });
 
 export default router;
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35

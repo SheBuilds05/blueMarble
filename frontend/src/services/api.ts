@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-const API_BASE = 'https://bluemarble.onrender.com/api';
+const API_URL = 'http://localhost:5001/api';
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -22,12 +22,8 @@ export const loginUser = (email: string, password: string) =>
 // ========== ACCOUNTS ==========
 export const getUserAccounts = () => api.get('/auth/accounts');
 
-// NEW: Endpoint to add a secondary account (Cheque/Invest)
-export const addAccount = (type: string) => 
-  api.post('/auth/add-account', { type });
-
 // ========== USER PROFILE ==========
-export const getUserProfile = () => api.get('/auth/accounts'); 
+export const getUserProfile = () => api.get('/auth/accounts'); // Using accounts endpoint as profile
 
 // ========== TRANSFERS / PAYMENTS ==========
 export const transferFunds = (fromAccountId: string, toAccountId: string, amount: number, reference?: string) =>
@@ -52,8 +48,8 @@ export const buyAirtime = (provider: string, phoneNumber: string, amount: number
 export const buyElectricity = (provider: string, meterNumber: string, amount: number) =>
   api.post('/buy/electricity', { provider, meterNumber, amount });
 
-// FIXED: Changed 'voucherType' to 'provider' to match your backend destructuring
-export const buyVoucher = (provider: string, amount: number, email: string) =>
-  api.post('/buy/voucher', { provider, amount, email });
+export const buyVoucher = (voucherType: string, amount: number, email: string) =>
+  api.post('/buy/voucher', { voucherType, amount, email });
 
 export default api;
+

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,20 +16,41 @@ import {
   Menu, 
   X 
 } from 'lucide-react';
+<<<<<<< HEAD
+=======
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+>>>>>>> sibongokuhle
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   if (!user) return null;
+<<<<<<< HEAD
+=======
+>>>>>>> sibongokuhle
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { name: 'Deposit', path: '/deposit', icon: <ArrowDownCircle size={18} /> },
@@ -126,8 +151,34 @@ const Navbar = () => {
           </div>
         </div>
       )}
+<<<<<<< HEAD
+=======
+  if (!user) return null;
+
+  return (
+    <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex justify-between items-center">
+      <Link to="/deposit" className="text-xl font-bold text-[#052CE0]">BlueMarble</Link>
+      <div className="flex gap-6 items-center">
+        <Link to="/deposit" className="text-gray-600 hover:text-[#052CE0]">Deposit</Link>
+        <Link to="/buy" className="text-gray-600 hover:text-[#052CE0]">Buy</Link>
+        <Link to="/notifications" className="text-gray-600 hover:text-[#052CE0]">Notifications</Link>
+        <span className="text-gray-400">|</span>
+        <span className="text-sm text-gray-600">{user.name}</span>
+        <button onClick={handleLogout} className="text-sm text-red-500 hover:text-red-600">Logout</button>
+      </div>
+>>>>>>> sibongokuhle
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
     </nav>
   );
 };
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 export default Navbar;
+=======
+export default Navbar;
+>>>>>>> sibongokuhle
+=======
+export default Navbar;
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35

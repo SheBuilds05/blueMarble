@@ -22,7 +22,7 @@ export const calculateBalanceFromData = (data: Transaction[]): number => {
  */
 export const fetchLiveTransactions = async (): Promise<Transaction[]> => {
   try {
-    const response = await fetch('http://localhost:5000/api/transactions/history');
+    const response = await fetch('http://localhost:5001/api/transactions/history');
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
   } catch (error) {

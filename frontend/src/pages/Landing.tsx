@@ -1,3 +1,26 @@
+<<<<<<< HEAD
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ShieldCheck, Globe } from 'lucide-react';
+
+function LandingPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // This timer waits for 4 seconds of animation, then moves to /auth
+    const timer = setTimeout(() => {
+      navigate('/auth');
+    }, 4000);
+
+    return () => clearTimeout(timer); // Cleanup timer if user leaves
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-[#020617] text-slate-100 font-sans flex flex-col items-center justify-center p-6 overflow-hidden">
+      
+      {/* Ambient Background Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(37,99,235,0.08),transparent_60%)]"></div>
+=======
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Globe, Loader2 } from 'lucide-react';
@@ -5,6 +28,7 @@ import { ShieldCheck, Globe, Loader2 } from 'lucide-react';
 function LandingPage() {
   const navigate = useNavigate();
   const [isInitializing, setIsInitializing] = useState(true);
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 
   useEffect(() => {
     // 1.5-second delay for the "initialization" state
@@ -45,6 +69,13 @@ function LandingPage() {
                 <span className="text-white/50">Marble</span>
               </h1>
 
+<<<<<<< HEAD
+            {/* Slogan */}
+            <div className="mt-4 px-6 py-2 border-y border-blue-500/10 backdrop-blur-sm">
+              <p className="text-xs md:text-sm font-medium tracking-[0.5em] uppercase text-blue-100/60 whitespace-nowrap">
+                "Your World, Your Wealth, Your Bank"
+              </p>
+=======
               {/* Slogan */}
               <div className="mt-4 px-6 py-2 border-y border-white/10 backdrop-blur-sm">
                 <p className="text-xs md:text-sm font-black tracking-[0.5em] uppercase text-white/40 whitespace-nowrap">
@@ -59,12 +90,17 @@ function LandingPage() {
                   Secure System Initializing
                 </p>
               </div>
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
             </div>
           </div>
         </div>
 
         {/* Professional Trust Bar */}
+<<<<<<< HEAD
+        <div className="absolute bottom-10 flex items-center justify-center gap-8 text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] opacity-40">
+=======
         <div className="absolute bottom-10 flex items-center justify-center gap-8 text-white/20 text-[10px] font-black uppercase tracking-[0.4em]">
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
           <span className="flex items-center gap-2">
             <Globe className="w-3.5 h-3.5 text-white/40" /> 
             Global Network

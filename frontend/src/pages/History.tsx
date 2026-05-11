@@ -22,7 +22,7 @@ const History: React.FC = () => {
     const fetchTransactions = async () => {
       try {
         // Fetching from your actual API
-        const response = await fetch('http://localhost:5000/api/transactions/history');
+        const response = await fetch('http://localhost:5001/api/transactions/history');
         const data: Transaction[] = await response.json();
         
         setTransactions(data);

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
+import { useNavigate, Link } from 'react-router-dom'; // Added Link for navigation
+=======
 import { useNavigate, Link } from 'react-router-dom';
 import { ShieldCheck, Eye, EyeOff, Fingerprint, ChevronLeft, ArrowRight } from 'lucide-react';
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
 import Swal from 'sweetalert2';
 
 const RegisterPage: React.FC = () => {
@@ -25,6 +29,12 @@ const RegisterPage: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+<<<<<<< HEAD
+  // --- STEP 1: VERIFY ID ---
+  const handleVerifyID = async () => {
+    if (!formData.idNumber || formData.idNumber.length < 13) {
+      Swal.fire('Invalid ID', 'Please enter a valid 13-digit ID number', 'warning');
+=======
   const handleVerifyID = async () => {
     if (!formData.idNumber || formData.idNumber.length < 13) {
       Swal.fire({
@@ -33,12 +43,17 @@ const RegisterPage: React.FC = () => {
         icon: 'warning',
         confirmButtonColor: '#002a8f'
       });
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
       return;
     }
 
     setIsLoading(true);
     try {
+<<<<<<< HEAD
+      const response = await fetch('http://localhost:5000/api/auth/verify-id', {
+=======
       const response = await fetch('https://bluemarble.onrender.com/api/auth/verify-id', {
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idNumber: formData.idNumber }),
@@ -47,28 +62,56 @@ const RegisterPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
+<<<<<<< HEAD
+        // PRE-FILL THE NAME FROM DATABASE
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         setFormData(prev => ({ ...prev, firstName: data.firstName || '' }));
         setStep(2);
         Swal.fire({
           icon: 'success',
+<<<<<<< HEAD
+          title: `Identity Verified`,
+          text: `Welcome, ${data.firstName}. Please complete your registration.`,
+          timer: 2000,
+          showConfirmButton: false
+=======
           title: 'Identity Verified',
           text: `Welcome, ${data.firstName}. Set up your access.`,
           timer: 2000,
           showConfirmButton: false,
           customClass: { popup: 'rounded-[2rem]' }
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         });
       } else if (response.status === 409) {
         Swal.fire({
           icon: 'info',
+<<<<<<< HEAD
+          title: 'Already Registered',
+          text: 'You already have an account. Please sign in.',
+          confirmButtonText: 'Go to Login',
+          confirmButtonColor: '#052CE0'
+=======
           title: 'Already Active',
           text: 'This profile is already registered for mobile banking.',
           confirmButtonText: 'SIGN IN',
           confirmButtonColor: '#002a8f',
           customClass: { popup: 'rounded-[2rem]' }
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         }).then((result) => { if (result.isConfirmed) navigate('/login'); });
       } else {
         Swal.fire({
           icon: 'error',
+<<<<<<< HEAD
+          title: 'Client Not Found',
+          html: `We couldn't find an account for this ID.<br/><br/>
+                 <a href="/open-account" style="color: #2563eb; font-weight: bold;">Click here to open an account</a>`,
+          confirmButtonColor: '#2563eb'
+        });
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Server connection failed.', 'error');
+=======
           title: 'No Profile Found',
           html: `<p style="font-size: 14px; color: #64748b;">We couldn't find an account for this ID.</p><br/><a href="/open-account" style="color: #002a8f; font-weight: 900; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Open an Account</a>`,
           confirmButtonColor: '#002a8f'
@@ -76,21 +119,34 @@ const RegisterPage: React.FC = () => {
       }
     } catch (err) {
       Swal.fire('Error', 'Secure connection failed.', 'error');
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
     } finally {
       setIsLoading(false);
     }
   };
 
+<<<<<<< HEAD
+  // --- STEP 2: FINAL REGISTER ---
+=======
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
+<<<<<<< HEAD
+      Swal.fire('Error', 'Passwords do not match!', 'error');
+=======
       Swal.fire({ title: 'Mismatch', text: 'Passwords do not match.', icon: 'error', confirmButtonColor: '#002a8f' });
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
       return;
     }
 
     try {
+<<<<<<< HEAD
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+=======
       const response = await fetch('https://bluemarble.onrender.com/api/auth/register', {
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -99,17 +155,117 @@ const RegisterPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
+<<<<<<< HEAD
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Mobile banking activated!', timer: 2000 });
+=======
         Swal.fire({ icon: 'success', title: 'Activation Successful', text: 'Mobile banking is now active!', timer: 2000, showConfirmButton: false });
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
         setTimeout(() => navigate('/login'), 2000);
       } else {
         Swal.fire('Failed', data.message || 'Registration error', 'error');
       }
     } catch (error) {
+<<<<<<< HEAD
+      Swal.fire('Error', 'Could not connect to server.', 'error');
+=======
       Swal.fire('Error', 'Could not connect to secure server.', 'error');
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
     }
   };
 
   return (
+<<<<<<< HEAD
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-900 p-4 font-sans text-white">
+      <div className="bg-blue-600/40 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl w-full max-w-lg border border-blue-400/30">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-black tracking-tighter italic">BlueMarble</h1>
+          <p className="text-blue-100 text-sm mt-1">{step === 1 ? "Identity Verification" : "Secure Your Account"}</p>
+        </div>
+
+        {step === 1 ? (
+          /* --- VIEW 1: ID VERIFICATION --- */
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-blue-200 uppercase tracking-widest">ID Number</label>
+              <input 
+                name="idNumber"
+                type="text" 
+                value={formData.idNumber}
+                onChange={handleChange}
+                placeholder="13-digit identity number"
+                className="w-full p-4 bg-white/10 border border-blue-400/50 rounded-2xl text-white outline-none focus:ring-2 focus:ring-white transition-all placeholder:text-blue-200/50"
+              />
+            </div>
+            <button 
+              onClick={handleVerifyID} 
+              disabled={isLoading} 
+              className="w-full bg-white text-blue-700 font-black py-4 rounded-2xl shadow-xl hover:bg-blue-50 active:scale-95 transition-all"
+            >
+              {isLoading ? "VERIFYING..." : "VERIFY IDENTITY"}
+            </button>
+
+            <div className="text-center mt-6">
+              <p className="text-blue-100 text-sm">
+                Already have mobile banking?{' '}
+                <Link to="/login" className="font-bold text-white underline decoration-blue-400 hover:text-blue-200 transition-colors">
+                  Log In
+                </Link>
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* --- VIEW 2: FULL REGISTRATION --- */
+          <form onSubmit={handleRegister} className="space-y-4 animate-in fade-in zoom-in duration-300">
+            <div className="flex gap-4">
+              <input name="firstName" value={formData.firstName} placeholder="First Name" onChange={handleChange} required className="w-1/2 p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
+              <input name="surname" value={formData.surname} placeholder="Surname" onChange={handleChange} required className="w-1/2 p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
+            </div>
+        
+            <input name="phone" value={formData.phone} type="tel" placeholder="Phone Number" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
+            
+            <div className="space-y-1">
+    <label className="text-[10px] font-black text-blue-200 uppercase tracking-widest ml-1">Email Address</label>
+    <input 
+      name="email" 
+      type="email" 
+      value={formData.email} 
+      placeholder="e.g. khensani@example.com" 
+      onChange={handleChange} 
+      required 
+      className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors placeholder:text-blue-200/50" 
+    />
+  </div>
+
+
+            <div className="relative">
+              <input name="password" value={formData.password} type={showPassword ? "text" : "password"} placeholder="Set Password" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-4 text-[10px] text-blue-200 font-bold hover:text-white transition-colors">{showPassword ? "HIDE" : "SHOW"}</button>
+            </div>
+
+            <div className="relative">
+              <input name="confirmPassword" value={formData.confirmPassword} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" onChange={handleChange} required className="w-full p-3 bg-white/10 border border-blue-400/50 rounded-xl text-white outline-none focus:border-white transition-colors" />
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-4 text-[10px] text-blue-200 font-bold hover:text-white transition-colors">{showConfirmPassword ? "HIDE" : "SHOW"}</button>
+            </div>
+
+            <button type="submit" className="w-full bg-white text-blue-700 font-black py-4 rounded-2xl shadow-xl mt-4 hover:bg-blue-50 active:scale-95 transition-all">
+              ACTIVATE BANKING
+            </button>
+            
+            <div className="flex flex-col items-center gap-3 mt-4">
+              <button type="button" onClick={() => setStep(1)} className="text-blue-200 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+                Back to ID Check
+              </button>
+              <p className="text-blue-100 text-sm">
+                Already registered?{' '}
+                <Link to="/login" className="font-bold text-white underline decoration-blue-400 hover:text-blue-200 transition-colors">
+                  Log In
+                </Link>
+              </p>
+            </div>
+          </form>
+        )}
+=======
     <div className="min-h-screen w-full flex items-center justify-center bg-[#002a8f] p-6 selection:bg-white selection:text-[#002a8f]">
       <div className="w-full max-w-lg">
         
@@ -212,6 +368,7 @@ const RegisterPage: React.FC = () => {
             </form>
           )}
         </div>
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
       </div>
     </div>
   );
