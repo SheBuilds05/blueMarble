@@ -35,3 +35,14 @@ Clone the Repository                                git clone https://github.com
 Local Development (Docker Compose)                  docker-compose up --build
 
 Kubernetes Deployment                               kubectl apply -f ./kubernetes-manifests/
+
+
+
+
+
+**Black-box test**
+
+
+to test you can run npx playwright show-report in the frontend and backend run npm run test
+ <img width="1577" height="773" alt="image" src="https://github.com/user-attachments/assets/f6be0bc4-cd98-485d-aec9-f3266f020c7c" />
+
