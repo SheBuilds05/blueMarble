@@ -36,3 +36,4 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
     res.status(403).json({ message: "Invalid authentication token." });
   }
 };
+export default verifyToken;

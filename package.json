@@ -4,6 +4,12 @@
   "description": "**OpenBank Cloud Simulation**",
   "main": "index.js",
   "scripts": {},
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SheBuilds05/blueMarble.git"

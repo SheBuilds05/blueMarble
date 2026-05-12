@@ -31,7 +31,7 @@ const Profile: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/api/profile/${userId}`);
+        const response = await fetch(`https://bluemarble.onrender.com/api/profile/${userId}`);
         if (!response.ok) throw new Error(`Server responded with ${response.status}`);
         
         const data = await response.json();
@@ -53,7 +53,7 @@ const Profile: React.FC = () => {
     if (!draft || !userId) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+      const response = await fetch(`https://bluemarble.onrender.com/api/profile/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(draft),
