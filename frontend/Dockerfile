@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:20
 
 WORKDIR /app
 
@@ -7,6 +7,12 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+RUN npm run build
 
-CMD ["npm", "start"]
+RUN npm install -g serve
+
+ENV PORT=8080
+
+EXPOSE 8080
+
+CMD ["serve", "-s", "dist", "-l", "8080"]

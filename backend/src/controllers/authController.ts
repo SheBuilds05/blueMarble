@@ -1,4 +1,35 @@
 import { Request, Response } from 'express';
+<<<<<<< HEAD
+import User from '../models/User';
+import bcrypt from 'bcryptjs';
+
+export const register = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+    if (user) {
+      res.status(400).json({ message: "User already exists" });
+      return;
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    user = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
+    await user.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+=======
 import User from '../models/Users';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
@@ -133,5 +164,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({ message: "Mobile banking activated!" });
   } catch (err: any) {
     res.status(500).json({ message: "Registration failed." });
+>>>>>>> 36758dffb0cf3b1196eb1b447bc814e1da3acf35
   }
 };
